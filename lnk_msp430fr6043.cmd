@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2012 - 2021 Texas Instruments Incorporated - http://www.ti.com/
+* Copyright (C) 2012 - 2017 Texas Instruments Incorporated - http://www.ti.com/
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions
@@ -47,12 +47,14 @@
 /* -heap   0x0100                                   HEAP AREA SIZE            */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
-/* 1.213 */
+/* 1.201    (Beta-Build-Tag: #0014) */
 /*----------------------------------------------------------------------------*/
 
 /****************************************************************************/
 /* SPECIFY THE SYSTEM MEMORY MAP                                            */
 /****************************************************************************/
+
+-stack  600
 
 MEMORY
 {
@@ -63,7 +65,9 @@ MEMORY
     BOOTROM                 : origin = 0x1B00, length = 0x100
     RAM                     : origin = 0x1C00, length = 0x1000
     FRAM                    : origin = 0x6000, length = 0x9F80
-    FRAM2                   : origin = 0x10000,length = 0x5FF8 /* Boundaries changed to fix CPU47 */
+    FRAM2                   : origin = 0x10000,length = 0x5FF0
+    VERSION                 : origin = 0x15FF0,length = 0x08
+    LIB_VERSION             : origin = 0x15FF8,length = 0x08
     JTAGSIGNATURE           : origin = 0xFF80, length = 0x0004, fill = 0xFFFF
     BSLSIGNATURE            : origin = 0xFF84, length = 0x0004, fill = 0xFFFF
     IPESIGNATURE            : origin = 0xFF88, length = 0x0008, fill = 0xFFFF
@@ -133,8 +137,7 @@ MEMORY
 
 MEMORY
 {
-    LEARAM_0                : origin = 0x4000, length = 0x1000
-    LEARAM                  : origin = 0x5000, length = 0x1000 - LEASTACK_SIZE
+    LEARAM                  : origin = 0x4000, length = 0x2000 - LEASTACK_SIZE
     LEASTACK                : origin = 0x6000 - LEASTACK_SIZE, length = LEASTACK_SIZE
 }
 
@@ -149,7 +152,21 @@ SECTIONS
 
         GROUP(READ_WRITE_MEMORY)
         {
-
+        	// Place USS configuration at top of memory
+			uss_config :
+			{
+				USS_userConfig.obj(.TI.persistent:gUssSWConfig)
+				USS_userConfig.obj(.TI.persistent:ussSystemConfig)
+				USS_userConfig.obj(.TI.persistent:ussMeterConfig)
+				USS_userConfig.obj(.TI.persistent:ussMeasurementConfig)
+				USS_userConfig.obj(.TI.persistent:ussPLLConfig)
+				USS_userConfig.obj(.TI.persistent:ussCaptureConfig)
+				USS_userConfig.obj(.TI.persistent:ussTriggerConfig)
+				USS_userConfig.obj(.TI.persistent:ussInterruptConfig)
+				USS_userConfig.obj(.TI.persistent:ussAlgConfig)
+				USS_userConfig.obj(.TI.persistent:ussPulseConfig)
+				// USS_userConfig.obj(.TI.persistent:singDualToneConfig)
+			}
             .TI.persistent : {}              /* For #pragma persistent            */
             .cio           : {}              /* C I/O Buffer                      */
             .sysmem        : {}              /* Dynamic memory allocation area    */
@@ -165,6 +182,9 @@ SECTIONS
         } PALIGN(0x0400), RUN_START(fram_ipe_start) RUN_END(fram_ipe_end) RUN_END(fram_rx_start)
 
     } > 0x6000
+	
+    .version          : {}  > VERSION
+    .libVersion       : {}  > LIB_VERSION
 
     .cinit            : {}  > FRAM          /* Initialization tables             */
     .binit            : {}  > FRAM          /* Boot-time Initialization tables   */
@@ -173,6 +193,9 @@ SECTIONS
     .mspabi.exidx     : {}  > FRAM          /* C++ Constructor tables            */
     .mspabi.extab     : {}  > FRAM          /* C++ Constructor tables            */
     .text:_isr        : {}  > FRAM          /* Code ISRs                         */
+#ifndef __USS_RUN_ALG_FROM_RAM__
+	.USS_ramfunc      : {}  > FRAM
+#endif
 
 #ifndef __LARGE_DATA_MODEL__
     .const            : {} > FRAM           /* Constant data                     */
@@ -196,6 +219,18 @@ SECTIONS
         #endif
     #endif
 
+	#ifdef __USS_RUN_ALG_FROM_RAM__
+	    #ifdef __TI_COMPILER_VERSION__
+	        #if __TI_COMPILER_VERSION__ >= 15009000
+				#ifndef __LARGE_DATA_MODEL__
+	                .USS_ramfunc : {} load=FRAM, run=RAM, table(BINIT)
+				#else
+	                .USS_ramfunc : {} load=FRAM | FRAM2, run=RAM, table(BINIT)
+	        	#endif
+			#endif
+		#endif
+	#endif
+
     .jtagsignature      : {} > JTAGSIGNATURE
     .bslsignature       : {} > BSLSIGNATURE
 
@@ -205,14 +240,23 @@ SECTIONS
         .jtagpassword       : {}            /* JTAG Password                     */
     } > IPESIGNATURE
 
-    .bss        : {} > RAM                  /* Global & static vars              */
-    .data       : {} > RAM                  /* Global & static vars              */
-    .TI.noinit  : {} > RAM                  /* For #pragma noinit                */
+    #ifdef __USS_RUN_ALG_FROM_RAM__
+        .bss        : {} > RAM | FRAM                 /* Global & static vars              */
+        .data       : {} > RAM | FRAM                 /* Global & static vars              */
+        .TI.noinit  : {} > RAM | FRAM                 /* For #pragma noinit                */
+    #else
+        .bss        : {} > RAM                 /* Global & static vars              */
+        .data       : {} > RAM | LEARAM       /* Global & static vars              */
+        .TI.noinit  : {} > RAM                 /* For #pragma noinit                */
+    #endif
+
+    .ram_thrill : {} > RAM | LEARAM
+
     .stack      : {} > RAM (HIGH)           /* Software system stack             */
 
     .tinyram    : {} > TINYRAM              /* Tiny RAM                          */
 
-    .leaRAM      : {} > LEARAM               /* LEA RAM                           */
+    .leaRAM      : {} >> LEARAM  /* LEA RAM                           */
     .leaStack    : {} > LEASTACK (HIGH)      /* LEA STACK                         */
 
     /* MSP430 interrupt vectors */

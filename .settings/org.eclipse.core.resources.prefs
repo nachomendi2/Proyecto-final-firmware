@@ -1,6 +1,8 @@
 eclipse.preferences.version=1
 encoding//Debug/USS_Config/subdir_rules.mk=UTF-8
 encoding//Debug/USS_Config/subdir_vars.mk=UTF-8
+encoding//Debug/hal/subdir_rules.mk=UTF-8
+encoding//Debug/hal/subdir_vars.mk=UTF-8
 encoding//Debug/libraries/FRAM_utilities/lz4/subdir_rules.mk=UTF-8
 encoding//Debug/libraries/FRAM_utilities/lz4/subdir_vars.mk=UTF-8
 encoding//Debug/libraries/FRAM_utilities/nvs/subdir_rules.mk=UTF-8

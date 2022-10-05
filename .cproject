@@ -33,9 +33,15 @@
 							<builder buildPath="${BuildDirectory}" id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.exe.builderDebug.274318771" keepEnvironmentInBuildfile="false" name="GNU Make" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.exe.builderDebug"/>
 							<tool id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.exe.compilerDebug.2088085587" name="MSP430 Compiler" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.exe.compilerDebug">
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.DEFINE.306427506" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.DEFINE" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="__EVM430_VER__=0x20"/>
+									<listOptionValue builtIn="false" value="__AFE_EXT_3v3__"/>
+									<listOptionValue builtIn="false" value="USS_GAS_CONFIGURATION"/>
+									<listOptionValue builtIn="false" value="__EVM430_ID__=0x43"/>
+									<listOptionValue builtIn="false" value="__WATCHDOG_ENABLE__"/>
 									<listOptionValue builtIn="false" value="__MSP430FR6043__"/>
 									<listOptionValue builtIn="false" value="STACK_SIZE=160"/>
 									<listOptionValue builtIn="false" value="CTPL_STACK_SIZE=160"/>
+									<listOptionValue builtIn="false" value="__EXTRA_VERSION__=0x00,0x00"/>
 									<listOptionValue builtIn="false" value="_MPU_ENABLE"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.DATA_MODEL.2111537197" name="Specify the data memory model. (--data_model)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.DATA_MODEL" useByScannerDiscovery="false" value="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.DATA_MODEL.large" valueType="enumerated"/>
@@ -54,20 +60,26 @@
 								<option id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.DIAG_WRAP.1339855204" name="Wrap diagnostic messages (--diag_wrap)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.DIAG_WRAP" useByScannerDiscovery="false" value="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.DIAG_WRAP.off" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.INCLUDE_PATH.81228335" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/USS/source/USS_HAL}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/hal}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/modules}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/USS_Config}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/FRAM_utilities/lz4}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/FRAM_utilities/nvs}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/FRAM_utilities/rng}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/USS/source}"/>
 									<listOptionValue builtIn="false" value="${CCS_BASE_ROOT}/msp430/include"/>
 									<listOptionValue builtIn="false" value="${PROJECT_ROOT}"/>
 									<listOptionValue builtIn="false" value="${CG_TOOL_ROOT}/include"/>
-									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/include}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/driverlib}"/>
-									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/USS/source}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/IQMathLibrary}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/USS}"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.ADVICE__POWER.1513503451" name="Enable checking of ULP power rules (--advice:power)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.ADVICE__POWER" useByScannerDiscovery="false" value="all" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.OTHER_FLAGS.313231392" name="Other flags" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.OTHER_FLAGS" valueType="stringList">
 									<listOptionValue builtIn="false" value=""/>
 								</option>
+								<option id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.CODE_MODEL.180824417" name="Specify the code memory model. (--code_model)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.CODE_MODEL" value="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.CODE_MODEL.large" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.NEAR_DATA.1773309432" name="Indicates what data must be near (--near_data)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.NEAR_DATA" value="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compilerID.NEAR_DATA.globals" valueType="enumerated"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compiler.inputType__C_SRCS.33568916" name="C Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compiler.inputType__C_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compiler.inputType__CPP_SRCS.1413442882" name="C++ Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compiler.inputType__CPP_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compiler.inputType__ASM_SRCS.1116075499" name="Assembly Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_21.6.compiler.inputType__ASM_SRCS"/>
@@ -78,8 +90,8 @@
 									<listOptionValue builtIn="false" value="libmpu_init.a"/>
 									<listOptionValue builtIn="false" value="libmath.a"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/IQMathLibrary/IQmathLib.a}"/>
-									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/USS_optimized/Hilbert/CCS/USS_SW_CCS.a}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/USS_optimized/HilbWide/CCS/USS_SW_CCS.a}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/USS_optimized/Hilbert/CCS/USS_SW_CCS.a}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/USS_optimized/Lobe/CCS/USS_SW_CCS.a}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/USS_optimized/LobeWide/CCS/USS_SW_CCS.a}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/libraries/USS_optimized/LobeWideandHilbWide/CCS/USS_SW_CCS.a}"/>

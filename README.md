@@ -49,10 +49,10 @@ Cumpliendo con el paradigma de pogramacion modular. Se estructura el codigo del 
 - **ValveControl**: Controla la valvula (apertura,cierre)
 
 El codigo esta compuesto por las siguientes carpetas:	
--`hal`: hardware abstraction layer. Contiene varios archivos de codigo con funciones para manejar interactuar con perifericos y submodulos del MSP abstrayendose de la interaccion con el harware. Se implementa con funciones de librerias como `driverlib`.
--'libraries`: Contiene las librerias utilizadas en el codigo (USS, FRAM utilities, driverlib), asi como los archivos `.h`. **NO tocar**. Se puede romper el codigo
--`modules`: Contiene los archivos de codigo de los distintos modulos del programa.
--`USS_config`: Contiene archivos de configuracion del modulo USS. Estos archivos pueden generarse desde el Ultrasonic Design Center en base a la configuracion que presente los mejores resultados.
+- `hal`: hardware abstraction layer. Contiene varios archivos de codigo con funciones para manejar interactuar con perifericos y submodulos del MSP abstrayendose de la interaccion con el harware. Se implementa con funciones de librerias como `driverlib`.
+- `libraries`: Contiene las librerias utilizadas en el codigo (USS, FRAM utilities, driverlib), asi como los archivos `.h`. **NO tocar**. Se puede romper el codigo
+- `modules`: Contiene los archivos de codigo de los distintos modulos del programa.
+- `USS_config`: Contiene archivos de configuracion del modulo USS. Estos archivos pueden generarse desde el Ultrasonic Design Center en base a la configuracion que presente los mejores resultados.
 
 ### Funciones de FlowMeter:
 - `flowMeter_setup()`: Inicializa el medidor de flujo; se encarga de iniciar la USSlib, iniciar los algoritmos y cargar los capacitores para arrancar a medir en regimen permanente. Debe llamarse al principio del programa

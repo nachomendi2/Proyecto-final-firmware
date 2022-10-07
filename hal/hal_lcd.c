@@ -263,6 +263,7 @@ void hal_lcd_turnoffLCD(void)
 	{
 		LCDMemMap[i] = 0;
 	}
+	__no_operation();
 }
 
 void hal_lcd_turnonLCD(void)

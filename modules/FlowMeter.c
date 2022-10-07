@@ -11,8 +11,10 @@
 #include <string.h>
 #include <msp430.h>
 #include "ussSwLib.h"
+#include <QmathLib.h>
 
-/* ----- GLOBAL VARIABLES _____ */
+/* ----- GLOBAL VARIABLES ----- */
+const float referenceVFR = 1.8;  // Reference volume flow rate, used to calculate mass flow rate
 extern int16_t gUSSBinaryPattern[USS_BINARY_ARRAY_MAX_SIZE];
 #ifdef USS_APP_RESONATOR_CALIBRATE_ENABLE
 uint16_t resCalibcount;
@@ -107,12 +109,13 @@ USS_message_code flowMeter_setup(){
     return exit_status;
 }
 
-float flowMeter_measure(){
+float flowMeter_getVolumeFlowRate(){
     USS_Algorithms_Results_fixed_point results_fixed_point; //results in fixed point format
     USS_Algorithms_Results results; //results in float format
     USS_message_code exit_status = USS_message_code_no_error;
 
-    exit_status = USS_startLowPowerUltrasonicCapture(&gUssSWConfig); //USS_startUltrasonicMeasurement(&gUssSWConfig, USS_capture_power_mode_active);
+    // 1. Start ultrasound capture: generate pulse for transceiver and capture the waveform on receiver:
+    exit_status = USS_startLowPowerUltrasonicCapture(&gUssSWConfig);
     if (exit_status != USS_message_code_no_error){
 
         if (USSSWLIB_USS_interrupt_status & USS_HSPLL_PLL_UNLOCK_INTERRUPT){
@@ -123,6 +126,7 @@ float flowMeter_measure(){
         return -1.F;
     }
 
+    // 2. Run algorithms on captured waveform to get measurement results (in fixed point):
     exit_status = USS_runAlgorithmsFixedPoint(&gUssSWConfig, &results_fixed_point);
     if ( (exit_status != USS_message_code_valid_results)
             && (exit_status != USS_message_code_algorithm_captures_accumulated) ){
@@ -131,21 +135,23 @@ float flowMeter_measure(){
         //TODO: handle error
         __no_operation();
 
-    }else{
-
-        exit_status = USS_getResultsInFloat(&results_fixed_point,&results);
-        if (exit_status != USS_message_code_no_error){
-                //TODO: handle error
-            __no_operation();
-
-        }
     }
 
-// ------ ADITIONAL CALIBRATION (TODO: Check if necessary?) ------
+    // 3. Parse obtained results to floating point:
+    exit_status = USS_getResultsInFloat(&results_fixed_point,&results);
+    if (exit_status != USS_message_code_no_error){
+        //TODO: handle error
+        __no_operation();
+
+    }
+
+
+// ------ ADITIONAL CALIBRATION  ------
+// HSPLL Frequency verification test: compensate AToF & DToF calculation errors due to frequency drift:
 #ifdef USS_APP_RESONATOR_CALIBRATE_ENABLE
         // Calibrate the Resonator against the LFXT and obtain the correction
-        // term relative to the expected value obtained during the
-        // Initialization
+        // term relative to the expected value obtained during Initialization
+        // Based on USSlib User guide, "Library Calibration Routines" section
         if (USS_App_userConfig.u16ResonatorCalibrateInterval != 0)
         {
             if (++resCalibcount >= USS_App_userConfig.u16ResonatorCalibrateInterval)
@@ -174,6 +180,7 @@ float flowMeter_measure(){
             }
         }
 #endif
+// Calibration of amplifier gain, only for EVM, unnecesary for custom hardware:
 #ifdef USS_APP_AGC_CALIBRATE_ENABLE
         // Calibrate the gain amplifier.
         // This routine will update the agcConstant with optimal gain.
@@ -190,6 +197,23 @@ float flowMeter_measure(){
 
     return results.volumeFlowRate;
 }
+
+float flowMeter_getPressure(){
+    return 1.F;
+}
+
+float flowMeter_getMassFlowRate(){
+
+    float density = 4;
+
+    float vol_flow_rate = flowMeter_getVolumeFlowRate();
+    float pressure = flowMeter_getPressure();
+
+    float mass_flow_rate = referenceVFR*density;
+    return mass_flow_rate;
+}
+
+
 
 
 

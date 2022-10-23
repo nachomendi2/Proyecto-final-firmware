@@ -6,27 +6,14 @@
  */
 #include "utils.h"
 #include <stdbool.h>
+#include "ussSwLib.h"
+#include <msp430.h>
+#include "USS_userConfig.h"
 
-int ms_counter = 0;
+#define ACLK_FREQUENCY 32768 //clock frequency, used to calibrate delay.
 
-bool UT_delayms(ut_tmrDelay_t* p_timer, uint32_t p_ms){
-    switch(p_timer->state){
-        case(UT_TMR_DELAY_WAIT):
-               if((ms_counter - p_timer->startValue) >= p_ms){
-                    p_timer->state = UT_TMR_DELAY_INIT;
-                    return true;
-                }else{
-                    p_timer->state = UT_TMR_DELAY_WAIT;
-                    return false;
-                }
-            break;
-        case (UT_TMR_DELAY_INIT):
-            p_timer->startValue = ms_counter;
-            p_timer->state = UT_TMR_DELAY_WAIT;
-            return false;
-            break;
-    }
+void LPM_Delay(uint16_t n_cycles)
+{
+    USS_generateLPMDelay(&gUssSWConfig,USS_low_power_mode_option_low_power_mode_3, n_cycles);
 }
-
-
 

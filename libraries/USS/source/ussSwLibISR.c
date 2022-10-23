@@ -6,7 +6,7 @@
 //
 //*****************************************************************************
 #include <libraries/USS/source/common/USSGenericRegDef.h>
-#include <libraries/USS/source/USS_HAL/USS_Lib_HAL.h>
+#include <USS_Lib_HAL.h>
 #include <msp430.h>
 #include <stdint.h>
 #include <stdbool.h>

@@ -8,8 +8,20 @@
 #ifndef MODULES_VALVECONTROL_H_
 #define MODULES_VALVECONTROL_H_
 
+#include <stdint.h>
+#include <stdbool.h>
+#include "driverlib.h"
 
+bool SM_Valve();
 
+bool ValveReceiveOrder();
 
+void ValveConfig ();
+
+void ToggleValve (uint8_t SelectedPin);
+
+bool OpenValve();
+
+bool CloseValve();
 
 #endif /* MODULES_VALVECONTROL_H_ */

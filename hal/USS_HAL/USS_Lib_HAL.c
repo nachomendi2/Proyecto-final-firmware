@@ -75,7 +75,7 @@
  *
  * --/COPYRIGHT--*/
 #include <libraries/USS/source/common/USSGenericRegDef.h>
-#include <libraries/USS/source/USS_HAL/USS_Lib_HAL.h>
+#include <USS_Lib_HAL.h>
 
 
 // FRAM variables

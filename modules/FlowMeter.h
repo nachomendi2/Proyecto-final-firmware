@@ -13,9 +13,10 @@
 #include "USS_App_userConfig.h"
 #include <driverlib.h>
 #include <hal.h>
+#include <IQmathlib.h>
 
-extern USS_message_code flowMeter_setup();
+USS_message_code flowMeter_setup();
 
-extern float flowMeter_measure();
+_iq16 flowMeter_getVolumeFlowRate();
 
 #endif /* MODULES_FLOWMETER_H_ */

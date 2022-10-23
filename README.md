@@ -56,6 +56,6 @@ El codigo esta compuesto por las siguientes carpetas:
 
 ### Funciones de FlowMeter:
 - `flowMeter_setup()`: Inicializa el medidor de flujo; se encarga de iniciar la USSlib, iniciar los algoritmos y cargar los capacitores para arrancar a medir en regimen permanente. Debe llamarse al principio del programa
-- `flowMeter_getVolumeFloatRate()`: Devuelve el flujo volumetrico de gas. Para esto envia un pulso, espera en LPM3 a recibirlo y lo procesa mediante el algoritmo de HillbertWide para hallar el flujo.
+- `flowMeter_getVolumeFlowRate()`: Devuelve el flujo volumetrico de gas. Para esto envia un pulso, espera en LPM3 a recibirlo y lo procesa mediante el algoritmo de HillbertWide para hallar el flujo.
 - `flowMeter_getMassFlowRate()`: Devuelve el flujo masico de gas (**WIP**)
 - `flowMeter_getPressure()`: Devuelve la presion del gas (**WIP**)

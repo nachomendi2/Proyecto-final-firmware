@@ -11,10 +11,18 @@
 #include <string.h>
 #include <msp430.h>
 #include "ussSwLib.h"
-#include <QmathLib.h>
+#include "utils.h"
+#include <IQmathlib.h>
+
 
 /* ----- GLOBAL VARIABLES ----- */
-const float referenceVFR = 1.8;  // Reference volume flow rate, used to calculate mass flow rate
+
+// For calculating Mass flow rate (use #define instead of const to save memory):
+#define ATMOSPHERIC_PRESSURE 1000 // expressed in mbar
+#define LPG_AVERAGE_DENSITY 1.898 // expressed in kg/m^3
+_iq16 current_temperature;
+USS_Algorithms_Results results_f;
+
 extern int16_t gUSSBinaryPattern[USS_BINARY_ARRAY_MAX_SIZE];
 #ifdef USS_APP_RESONATOR_CALIBRATE_ENABLE
 uint16_t resCalibcount;
@@ -88,8 +96,15 @@ USS_message_code flowMeter_setup(){
     if (USS_message_code_no_error != exit_status)
     {
         // TODO: Handle error
+        __no_operation();
         return exit_status;
+
     }
+
+    // Set the background timer period to 1 second
+    USS_configAppTimerPeriod(&gUssSWConfig, gUssSWConfig.systemConfig->measurementPeriod);
+
+    USSSWLIB_USS_interrupt_status = 0;
 
 
 #ifdef USS_PRECHARGE_ENABLE // Perform some captures to charge capacitors (skipped if USS_PRECHARGE_ENABLE undefined)
@@ -100,7 +115,7 @@ USS_message_code flowMeter_setup(){
         exit_status = USS_startLowPowerUltrasonicCapture(&gUssSWConfig);//USS_startUltrasonicMeasurement(&gUssSWConfig,USS_capture_power_mode_active);
         // Invalid capture must report error
         if (exit_status != USS_message_code_no_error){
-            __no_operation();
+            USS_resetUSSModule(&gUssSWConfig, true);
             }
         }
     }
@@ -109,12 +124,14 @@ USS_message_code flowMeter_setup(){
     return exit_status;
 }
 
-float flowMeter_getVolumeFlowRate(){
-    USS_Algorithms_Results_fixed_point results_fixed_point; //results in fixed point format
-    USS_Algorithms_Results results; //results in float format
+_iq16 flowMeter_getVolumeFlowRate(){
+    USS_Algorithms_Results_fixed_point results; //results in fixed point format
     USS_message_code exit_status = USS_message_code_no_error;
+#ifdef USS_APP_RESONATOR_CALIBRATE_ENABLE
+    USS_calibration_hspll_results pllCalibTestResults;
+#endif
 
-    // 1. Start ultrasound capture: generate pulse for transceiver and capture the waveform on receiver:
+    // 1. Start ultrasonic capture: generate pulse for transceiver and capture the waveform on receiver:
     exit_status = USS_startLowPowerUltrasonicCapture(&gUssSWConfig);
     if (exit_status != USS_message_code_no_error){
 
@@ -123,11 +140,27 @@ float flowMeter_getVolumeFlowRate(){
         }
         //TODO: handle error
         __no_operation();
-        return -1.F;
+        return -1;
     }
 
+#ifdef USS_APP_DC_OFFSET_CANCELLATION_ENABLE
+                // Calibrate the gain amplifier.
+                // This routine will update the agcConstant with optimal gain
+                if (USS_App_userConfig.u16DCOffsetEstimateInterval != 0)
+                {
+                    if (++dcOffsetEstcount >= USS_App_userConfig.u16DCOffsetEstimateInterval)
+                    {
+                        dcOffsetEstcount = 0;
+                        // Perform DC offset estimation using measurement sequence going
+                        // to LPM3 between UPS and DNS capture
+                        exit_status = USS_estimateDCoffset(&gUssSWConfig,
+                                                USS_dcOffEst_Calc_Mode_use_existing_UPS_DNS_capture );
+                    }
+                }
+#endif
+
     // 2. Run algorithms on captured waveform to get measurement results (in fixed point):
-    exit_status = USS_runAlgorithmsFixedPoint(&gUssSWConfig, &results_fixed_point);
+    exit_status = USS_runAlgorithmsFixedPoint(&gUssSWConfig, &results);
     if ( (exit_status != USS_message_code_valid_results)
             && (exit_status != USS_message_code_algorithm_captures_accumulated) ){
 
@@ -137,14 +170,13 @@ float flowMeter_getVolumeFlowRate(){
 
     }
 
-    // 3. Parse obtained results to floating point:
-    exit_status = USS_getResultsInFloat(&results_fixed_point,&results);
+    /*DEPRECATED: 3. Parse obtained results to floating point:*/
+    exit_status = USS_getResultsInFloat(&results,&results_f);
     if (exit_status != USS_message_code_no_error){
         //TODO: handle error
         __no_operation();
 
     }
-
 
 // ------ ADITIONAL CALIBRATION  ------
 // HSPLL Frequency verification test: compensate AToF & DToF calculation errors due to frequency drift:
@@ -171,7 +203,7 @@ float flowMeter_getVolumeFlowRate(){
                     // Report error if the HSPLL frequency is outside the expected range
                     if (code == USS_message_code_HSPLL_pll_unlock_error)
                     {
-                        // Reset USS if a PLL unlock errror is detected
+                        // Reset USS if a PLL unlock error is detected
                         USS_resetUSSModule(&gUssSWConfig, true);
                     }
                     USSLibGUIApp_send_error(COMMAND_HANDLER_ERROR_FAULT_INVALID_CAPTURE,
@@ -180,7 +212,7 @@ float flowMeter_getVolumeFlowRate(){
             }
         }
 #endif
-// Calibration of amplifier gain, only for EVM, unnecesary for custom hardware:
+
 #ifdef USS_APP_AGC_CALIBRATE_ENABLE
         // Calibrate the gain amplifier.
         // This routine will update the agcConstant with optimal gain.
@@ -189,29 +221,39 @@ float flowMeter_getVolumeFlowRate(){
             if (++agcCalibcount >= USS_App_userConfig.u16AGCCalibrateInterval)
             {
                 agcCalibcount = 0;
-                code = USS_calibrateSignalGain(&gUssSWConfig);
+                exit_status = USS_calibrateSignalGain(&gUssSWConfig);
             }
         }
 #endif
 
+#ifdef __WATCHDOG_ENABLE__
+        hal_system_WatchdogFeed();
+#endif
 
-    return results.volumeFlowRate;
+    current_temperature = results.iq16Temperature;
+    return results.iq16VolumeFlowRate;
 }
 
 float flowMeter_getPressure(){
-    return 1.F;
+    return 1.898;
+}
+
+float flowMeter_getTemperature(){
+    return 15.F; // expressed in C
 }
 
 float flowMeter_getMassFlowRate(){
 
-    float density = 4;
-
-    float vol_flow_rate = flowMeter_getVolumeFlowRate();
     float pressure = flowMeter_getPressure();
+    float temperature = flowMeter_getTemperature();
 
-    float mass_flow_rate = referenceVFR*density;
+    float vol_flow_rate = flowMeter_getVolumeFlowRate()*(288.15/(273.15+temperature))*(ATMOSPHERIC_PRESSURE/1013.25);
+    float mass_flow_rate = 0;//vol_flow_rate*density*_QNsqrt(_qN A);
+
     return mass_flow_rate;
 }
+
+
 
 
 

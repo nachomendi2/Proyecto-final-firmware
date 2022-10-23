@@ -91,7 +91,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "hal.h"
-
 #include "USS_App_userConfig.h"
 
 

@@ -1,7 +1,7 @@
 #ifndef __BENCHMARK_H
 #define __BENCHMARK_H
 
-#include <libraries/USS/source/USS_HAL/USS_Lib_HAL.h>
+#include <USS_Lib_HAL.h>
 #include <msp430.h>
 #include <stdint.h>
 

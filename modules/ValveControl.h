@@ -12,6 +12,16 @@
 #include <stdbool.h>
 #include "driverlib.h"
 
+typedef enum
+{
+    VALVE_INIT_STATE,
+    VALVE_CLOSED_STATE,
+    VALVE_CLOSING_STATE,
+    VALVE_OPEN_STATE,
+    VALVE_OPENING_STATE
+
+}ValveState;
+
 bool SM_Valve();
 
 bool ValveReceiveOrder();

@@ -11,6 +11,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-void LPM_Delay(uint16_t n_cycles);
+bool UT_timer_delay();
+
+typedef enum
+{
+    UT_TMR_DELAY_INIT,
+    UT_TMR_DELAY_WAIT
+}UT_TMR_DELAY_STATE;
 
 #endif /* UTILS_H_ */

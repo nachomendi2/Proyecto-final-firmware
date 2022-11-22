@@ -166,7 +166,7 @@ _iq16 flowMeter_getVolumeFlowRate(){
 
 
         //TODO: handle error
-        __no_operation();
+        return 0;
 
     }
 

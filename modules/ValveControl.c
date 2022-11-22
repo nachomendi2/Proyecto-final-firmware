@@ -7,16 +7,6 @@
 
 #include "ValveControl.h"
 
-typedef enum
-{
-    VALVE_INIT_STATE,
-    VALVE_CLOSED_STATE,
-    VALVE_CLOSING_STATE,
-    VALVE_OPEN_STATE,
-    VALVE_OPENING_STATE
-
-}ValveState;
-
 ValveState NextState = VALVE_INIT_STATE;
 
 bool ValveReceiveOrder () //Por ahora los tres botones dan la misma orden

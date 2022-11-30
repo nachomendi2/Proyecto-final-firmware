@@ -108,6 +108,7 @@ static void hal_system_ClockInit(void);
 void hal_system_Init(void)
 {
     hal_system_WatchdogInit();
+    hal_timer_a_Init();
 #ifndef __SVSH_ENABLE__
     PMM_disableSVSH();
 #endif
@@ -123,7 +124,6 @@ void hal_system_Init(void)
 #endif
     hal_system_LEDOff(HAL_SYS_LED_0);	/* Clear LED1 and LED2 if there are no errors	*/
     hal_system_LEDOff(HAL_SYS_LED_1);
-    hal_timer_a_Init();
 }
 
 void hal_system_LEDOff(uint8_t LEDs)

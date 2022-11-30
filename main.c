@@ -7,19 +7,15 @@
 #include <Communications.h>
 #include "string.h"
 
-
 /*
  * main.c
  */
-
-extern uint8_t response;
+_iq16 volumeFlowRate = 0;
 
 int main(void)
 {
     uint16_t reset_source = 0x00;
     int32_t flujo;
-
-
     // --------- System Setup -------------
 
     hal_system_Init();
@@ -37,10 +33,14 @@ int main(void)
 	// --------- main program loop ----------
 	while(1){
 
-
 	    if(!UT_timer_delay()){
+
+	        if(Communications_isActive()){
+	            Communications_update();
+	        }
 	    }else{
-	        flujo = flowMeter_getVolumeFlowRate();
+	        //flujo = flowMeter_getVolumeFlowRate();
+
 	        _iq16 flujo_int = _IQ16int(flujo); // casteo flujo a int
 	        char lcd_output[6] = "";
 

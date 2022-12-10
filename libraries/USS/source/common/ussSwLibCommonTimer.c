@@ -23,12 +23,17 @@ void commonTimerGenerateLowPowerDelay(
 	commonClearCCFlagStart(config,compareControlReg);
 
 	commonTimerEnableInterrupt(config,compareControlReg);
-
-	__disable_interrupt();
+	if(lpmMode != 0){
+	    __disable_interrupt();
+	}
 	while(false==(USSSWLIB_USS_interrupt_status & USS_TIMER_EXPIRED_EVENT1_INTERRUPT))
 	{
-		__bis_SR_register(lpmMode + GIE);
-		__disable_interrupt();
+	    if(lpmMode != 0){
+	        __bis_SR_register(lpmMode + GIE);
+		    __disable_interrupt();
+		}else{
+		    __no_operation();
+		}
 	}
 
 	commonClearCCFlagStart(config,compareControlReg);

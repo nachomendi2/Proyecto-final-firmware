@@ -13,15 +13,12 @@
 #include "ussSwLib.h"
 #include "utils.h"
 #include <IQmathlib.h>
-
+#include <stdbool.h>
 
 /* ----- GLOBAL VARIABLES ----- */
 
-// For calculating Mass flow rate (use #define instead of const to save memory):
-#define ATMOSPHERIC_PRESSURE 1000 // expressed in mbar
-#define LPG_AVERAGE_DENSITY 1.898 // expressed in kg/m^3
-_iq16 current_temperature;
-USS_Algorithms_Results results_f;
+_iq16 totalizer = 0;
+uint16_t measurement_count = 0;
 
 extern int16_t gUSSBinaryPattern[USS_BINARY_ARRAY_MAX_SIZE];
 #ifdef USS_APP_RESONATOR_CALIBRATE_ENABLE
@@ -127,11 +124,19 @@ USS_message_code flowMeter_setup(){
 _iq16 flowMeter_getVolumeFlowRate(){
     USS_Algorithms_Results_fixed_point results; //results in fixed point format
     USS_message_code exit_status = USS_message_code_no_error;
+
 #ifdef USS_APP_RESONATOR_CALIBRATE_ENABLE
     USS_calibration_hspll_results pllCalibTestResults;
 #endif
 
     // 1. Start ultrasonic capture: generate pulse for transceiver and capture the waveform on receiver:
+
+    /* PARA EVITAR QUE LA LIBRERIA ENTRE EN LPM AL MEDIR, IR A ussSwLibmeasurement.c LINEAS 456 POR AHI
+     * ahi esta definida la funcion "commonTimerGenerateLowPowerDelay" que genera el delay que pone en
+     * sleep el micro, si cambiamos donde dice "USS_low_power_mode_option_low_power_mode_3" por 0, el
+     * codigo se queda esperando sin entrar en lpm!
+     */
+
     exit_status = USS_startLowPowerUltrasonicCapture(&gUssSWConfig);
     if (exit_status != USS_message_code_no_error){
 
@@ -140,7 +145,7 @@ _iq16 flowMeter_getVolumeFlowRate(){
         }
         //TODO: handle error
         __no_operation();
-        return -1;
+        return 0;
     }
 
 #ifdef USS_APP_DC_OFFSET_CANCELLATION_ENABLE
@@ -170,13 +175,14 @@ _iq16 flowMeter_getVolumeFlowRate(){
 
     }
 
-    /*DEPRECATED: 3. Parse obtained results to floating point:*/
+    /*DEPRECATED: 3. Parse obtained results to floating point:
+
     exit_status = USS_getResultsInFloat(&results,&results_f);
     if (exit_status != USS_message_code_no_error){
         //TODO: handle error
         __no_operation();
 
-    }
+    }*/
 
 // ------ ADITIONAL CALIBRATION  ------
 // HSPLL Frequency verification test: compensate AToF & DToF calculation errors due to frequency drift:
@@ -189,7 +195,9 @@ _iq16 flowMeter_getVolumeFlowRate(){
             if (++resCalibcount >= USS_App_userConfig.u16ResonatorCalibrateInterval)
             {
                 resCalibcount = 0;
+                __disable_interrupt();
                 code = USS_verifyHSPLLFrequency(&gUssSWConfig,&pllCalibTestResults);
+                __enable_interrupt();
                 if (code == USS_message_code_no_error)
                 {
                     // Update relative error if the HSPLL frequency is within range
@@ -206,8 +214,9 @@ _iq16 flowMeter_getVolumeFlowRate(){
                         // Reset USS if a PLL unlock error is detected
                         USS_resetUSSModule(&gUssSWConfig, true);
                     }
-                    USSLibGUIApp_send_error(COMMAND_HANDLER_ERROR_FAULT_INVALID_CAPTURE,
-                                           code);
+                    //TODO: handle error
+                    return 0;
+
                 }
             }
         }
@@ -230,27 +239,54 @@ _iq16 flowMeter_getVolumeFlowRate(){
         hal_system_WatchdogFeed();
 #endif
 
-    current_temperature = results.iq16Temperature;
     return results.iq16VolumeFlowRate;
 }
 
-float flowMeter_getPressure(){
-    return 1.898;
+_iq16 flowMeter_getPressure(){
+    return _IQ16(1.898);
 }
 
-float flowMeter_getTemperature(){
-    return 15.F; // expressed in C
+_iq16 flowMeter_getTemperature(){
+    return _IQ16(15.F); // expressed in C
 }
 
-float flowMeter_getMassFlowRate(){
+_iq16 flowMeter_getDensity(){
+    return LPG_REFERENCE_DENSITY;
+}
 
-    float pressure = flowMeter_getPressure();
-    float temperature = flowMeter_getTemperature();
+_iq16 flowMeter_getMassFlowRate(_iq16 vol_flow_rate){
+    // calculate mass flow rate, in order to save memory calculations will be done reusing 2 axiliary variables:
 
-    float vol_flow_rate = flowMeter_getVolumeFlowRate()*(288.15/(273.15+temperature))*(ATMOSPHERIC_PRESSURE/1013.25);
-    float mass_flow_rate = 0;//vol_flow_rate*density*_QNsqrt(_qN A);
+    // get temperature & pressure
+    _iq16 aux1 = flowMeter_getTemperature();
+    _iq16 aux2 = flowMeter_getPressure();
 
-    return mass_flow_rate;
+    aux1 = _IQ16div(
+            MASS_FLOW_RATE_CALCULATION_CONST_1,
+            MASS_FLOW_RATE_CALCULATION_CONST_2 + aux1);
+
+    aux2 =  _IQ16div(ATMOSPHERIC_PRESSURE,
+            MASS_FLOW_RATE_CALCULATION_CONST_3);
+
+    aux1 = _IQ16mpy(aux1,aux2);
+    aux1 = _IQ16mpy(aux1, vol_flow_rate);
+
+    return _IQ16mpy(aux1, flowMeter_getDensity());
+}
+
+void flowMeter_measure(){
+    // main loop of the flow meter module
+    // Measures mass flow rate, updates totalizer & handles overflows (WIP)
+
+    // first, get the volume flow rate:
+    _iq16 flow_rate = flowMeter_getVolumeFlowRate();
+
+    //convert to mass flow rate:
+    flow_rate = flowMeter_getMassFlowRate(flow_rate);
+
+    //add flow measurement to totalizer
+    measurement_count++;
+    totalizer += flow_rate;
 }
 
 

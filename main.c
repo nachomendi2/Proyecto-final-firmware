@@ -6,16 +6,18 @@
 #include "utils.h"
 #include <Communications.h>
 #include "string.h"
+#include <stdbool.h>
+#include "ValveControl.h"
 
 /*
  * main.c
  */
-_iq16 volumeFlowRate = 0;
+extern _iq16 totalizer;
+extern UT_TMR_DELAY_STATE wakeup_timer;
 
 int main(void)
 {
     uint16_t reset_source = 0x00;
-    int32_t flujo;
     // --------- System Setup -------------
 
     hal_system_Init();
@@ -29,19 +31,21 @@ int main(void)
 	__enable_interrupt();
 	flowMeter_setup();
 	Communications_setup();
+	valveControl_setup(VALVE_CLOSED_STATE);
 
 	// --------- main program loop ----------
 	while(1){
 
-	    if(!UT_timer_delay()){
+	    Communications_update();
 
-	        if(Communications_isActive()){
-	            Communications_update();
-	        }
+	    if(!UT_timer_delay(&wakeup_timer)){
+	        __no_operation();
+
+	        // Enter LPM
 	    }else{
-	        //flujo = flowMeter_getVolumeFlowRate();
+	        valveControl_update();
+	        flowMeter_measure();
 
-	        _iq16 flujo_int = _IQ16int(flujo); // casteo flujo a int
 	        char lcd_output[6] = "";
 
 	        /* IMPORTANTE: el compilador de TI, por defecto, reduce la cantidad de funcionalidades de sprintf
@@ -50,7 +54,9 @@ int main(void)
 	         * las funcionalidades de sprintf. Esto ocupa memoria! solo lo uso ahora para debugear con el display
 	         * TODO: MODIFICAR EL PARAM "--printf_support" A "minimal" ENTRANDO EN PROPIEDADES->MSP430 COMPILER->ADVANCED OPTIONS->LANGUAGE OPTIONS
 	         */
-	        sprintf(lcd_output, "%06d", flujo_int); // casteo el flujo de int a string
+	        float f_totalizer = _IQ16toF(totalizer);
+
+	        sprintf(lcd_output, "%06f", f_totalizer); // casteo el flujo de int a string
 
 	        // Display on LCD:
 	        uint8_t j=0;

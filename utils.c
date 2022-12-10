@@ -12,12 +12,9 @@
 
 #define ACLK_FREQUENCY 32768 //clock frequency, used to calibrate delay.
 
-UT_TMR_DELAY_STATE timer_delay;
-
-
-bool UT_timer_delay(){
-    if (timer_delay == UT_TMR_DELAY_INIT){
-        timer_delay = UT_TMR_DELAY_WAIT;
+bool UT_timer_delay(UT_TMR_DELAY_STATE *timer_delay){
+    if (*timer_delay == UT_TMR_DELAY_INIT){
+        *timer_delay = UT_TMR_DELAY_WAIT;
         return true;
     }else{
         return false;

@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "driverlib.h"
+#include <utils.h>
 
 typedef enum
 {
@@ -22,16 +23,22 @@ typedef enum
 
 }ValveState;
 
-bool SM_Valve();
+typedef struct
+{
+    ValveState state;
+    UT_TMR_DELAY_STATE command_pulse_delay;
+}ValveControl_Module;
 
-bool ValveReceiveOrder();
+void valveControl_update();
 
-void ValveConfig ();
+bool valveControl_close();
 
-void ToggleValve (uint8_t SelectedPin);
+void valveControl_delay();
 
-bool OpenValve();
+bool valveControl_open();
 
-bool CloseValve();
+void valveControl_toggle(uint8_t SelectedPin);
+
+void valveControl_setup(ValveState initial_state);
 
 #endif /* MODULES_VALVECONTROL_H_ */

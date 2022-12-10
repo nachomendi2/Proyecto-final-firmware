@@ -41,7 +41,7 @@ typedef struct
     uint8_t transmit_Frame_length;
     bool byte_Rx_received;
     bool byte_Tx_ready;
-}SPI_Communications_Handler;
+}SPI_Communications_Module;
 
 /* A Communications frame is composed of the following fields:
  * - Header (1 byte)
@@ -81,5 +81,8 @@ bool Communications_send(SPI_Communications_Frame frame);
 
 bool Communications_isActive();
 
+SPI_Communications_Frame Communications_ProcessFrame(SPI_Communications_Frame request);
+
+void Communications_update();
 
 #endif /* MODULES_COMMUNICATIONS_H_ */

@@ -12,9 +12,12 @@
 #include <stdint.h>
 #include <IQmathlib.h>
 #include "utils.h"
+#include <ValveControl.h>
 
-SPI_Communications_Handler SPI_slave = {0};
-extern _iq16 volumeFlowRate;
+SPI_Communications_Module SPI_slave = {0};
+extern _iq16 totalizer;
+extern uint16_t measurement_count;
+extern ValveControl_Module valve;
 
 void Communications_setup(void){
 
@@ -102,6 +105,10 @@ bool Communications_send(SPI_Communications_Frame frame){
 
     SPI_slave.byte_Transmit_buffer[frame.frame_Length - 1] = frame.frame_CRC;
 
+    // Transmit first byte
+    //EUSCI_A_SPI_transmitData(EUSCI_A2_BASE, SPI_slave.byte_Transmit_buffer[SPI_slave.byte_Transmit_Counter] );
+    //SPI_slave.byte_Transmit_Counter++;
+
     // Enable transmit interrupts
     EUSCI_A_SPI_clearInterrupt(EUSCI_A2_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
 
@@ -123,6 +130,7 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port2_ISR (void)
 #error Compiler not supported!
 #endif
 {
+   GPIO_clearInterrupt(GPIO_PORT_P2,GPIO_PIN2);
    switch(GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN2)){
        case GPIO_INPUT_PIN_LOW:
            SPI_slave.communication_Status = COMMUNICATION_STATUS_LISTENING;
@@ -151,8 +159,6 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port2_ISR (void)
                    );
            break;
    }
-   GPIO_clearInterrupt(GPIO_PORT_P2,GPIO_PIN2);
-
 }
 
 uint8_t received_byte = 0;
@@ -171,6 +177,7 @@ void __attribute__ ((interrupt(EUSCI_A2_VECTOR))) USCI_A2_ISR (void)
             EUSCI_A_SPI_TRANSMIT_INTERRUPT) == EUSCI_A_SPI_TRANSMIT_INTERRUPT) {
         EUSCI_A_SPI_clearInterrupt(EUSCI_A2_BASE,EUSCI_A_SPI_TRANSMIT_INTERRUPT);
         SPI_slave.byte_Tx_ready = true;
+        return;
     }
 
     if (EUSCI_A_SPI_getInterruptStatus(
@@ -178,6 +185,7 @@ void __attribute__ ((interrupt(EUSCI_A2_VECTOR))) USCI_A2_ISR (void)
                 EUSCI_A_SPI_RECEIVE_INTERRUPT) == EUSCI_A_SPI_RECEIVE_INTERRUPT) {
         EUSCI_A_SPI_clearInterrupt(EUSCI_A2_BASE,EUSCI_A_SPI_RECEIVE_INTERRUPT);
         SPI_slave.byte_Rx_received = true;
+        return;
     }
 
 }
@@ -196,23 +204,45 @@ SPI_Communications_Frame Communications_ProcessFrame(SPI_Communications_Frame re
     SPI_Communications_Frame response;
 
     switch(request.frame_Type){
-    case FRAME_REQUEST_TOTALIZER:
-        response.frame_Type = FRAME_RESPONSE_TOTALIZER;
-        response.frame_CRC = 40;
-        response.frame_Length = 5;
-        static uint8_t a[1] = {56};
-        response.frame_Body = a;
-        break;
     case FRAME_REQUEST_AVERAGE_MASS_FLOW_RATE:
         response.frame_Type = FRAME_RESPONSE_AVERAGE_MASS_FLOW_RATE;
         response.frame_CRC = 40;
         response.frame_Length = 8;
-        static uint8_t b[4] = {5,6,7,8};
-        //b[1] = (uint8_t)volumeFlowRate;
-        //b[2] = (uint8_t)(volumeFlowRate >> 8);
-        //b[3] = (uint8_t)(volumeFlowRate >> 16);
-        //b[4] = (uint8_t)(volumeFlowRate >> 24);
-        response.frame_Body = &b[0];
+
+        static union {
+                    float volumeFlowRate;
+                    uint8_t b[4];
+                }body_afr;
+
+        body_afr.volumeFlowRate = _IQ16toF(totalizer);
+        response.frame_Body = body_afr.b;
+    case FRAME_REQUEST_TOTALIZER:
+        response.frame_Type = FRAME_RESPONSE_TOTALIZER;
+        response.frame_CRC = 40;
+        response.frame_Length = 8;
+
+        static union {
+            float volumeFlowRate;
+            uint8_t b[4];
+        }body_totalizer;
+        _iq16 iq_count = _IQ16(measurement_count);
+
+        body_totalizer.volumeFlowRate = _IQ16toF(_IQ16mpy(totalizer,iq_count));
+        response.frame_Body = body_totalizer.b;
+        break;
+    case FRAME_REQUEST_OPEN_VALVE:
+        response.frame_Type = FRAME_RESPONSE_VALVE_ACK;
+        response.frame_CRC = 40;
+        response.frame_Length = 5;
+        response.frame_Body = valve.state;
+        valveControl_open();
+        break;
+    case FRAME_REQUEST_CLOSE_VALVE:
+        valveControl_close();
+        response.frame_Type = FRAME_RESPONSE_VALVE_ACK;
+        response.frame_CRC = 40;
+        response.frame_Length = 5;
+        response.frame_Body = valve.state;
         break;
     }
 
@@ -221,9 +251,15 @@ SPI_Communications_Frame Communications_ProcessFrame(SPI_Communications_Frame re
 
 
 void Communications_update(){
+
+    if (SPI_slave.communication_Status == COMMUNICATION_STATUS_INACTIVE) {
+            return;
+        }
+
     if (SPI_slave.byte_Rx_received){
         SPI_slave.byte_Rx_received = false;
         uint8_t received_byte = EUSCI_A_SPI_receiveData(EUSCI_A2_BASE);
+
         if(SPI_slave.communication_Status == COMMUNICATION_STATUS_LISTENING && received_byte == '*'){
 
             SPI_slave.communication_Status = COMMUNICATION_STATUS_PROCESSING_REQUEST;
@@ -233,26 +269,25 @@ void Communications_update(){
         }
 
         if(SPI_slave.communication_Status == COMMUNICATION_STATUS_PROCESSING_REQUEST){
-            SPI_slave.byte_Read_buffer[SPI_slave.byte_Read_Counter] =  received_byte;
+            SPI_slave.byte_Read_buffer[SPI_slave.byte_Read_Counter] = received_byte;
+
+            if(SPI_slave.byte_Read_Counter == 2 && SPI_slave.received_Frame_Length == 0){
+                SPI_slave.received_Frame_Length = received_byte;
+            }
             SPI_slave.byte_Read_Counter++;
 
-            if(SPI_slave.byte_Read_buffer[2] != 0){
-                SPI_slave.received_Frame_Length = SPI_slave.byte_Read_buffer[2];
-            }
-
-            if(SPI_slave.byte_Read_Counter == SPI_slave.received_Frame_Length){
+            if(SPI_slave.byte_Read_Counter == (SPI_slave.received_Frame_Length - 1) && SPI_slave.received_Frame_Length>0){
                 EUSCI_A_SPI_disableInterrupt(EUSCI_A2_BASE,EUSCI_A_SPI_RECEIVE_INTERRUPT);
                 SPI_slave.byte_Read_Counter = 0;
-                SPI_slave.received_Frame_Length = 0;
                 SPI_slave.communication_Status = COMMUNICATION_STATUS_SENDING_RESPONSE;
                 SPI_Communications_Frame request;
                 request.frame_Type = SPI_slave.byte_Read_buffer[1];
                 request.frame_Length = SPI_slave.byte_Read_buffer[2];
+                SPI_slave.received_Frame_Length = 0;
                 request.frame_CRC = SPI_slave.byte_Read_buffer[SPI_slave.byte_Read_Counter - 1];
                 SPI_Communications_Frame response = Communications_ProcessFrame(request);
                 Communications_send(response);
             }
-
         }
     }
 
@@ -276,8 +311,10 @@ void Communications_update(){
                                            EUSCI_A_SPI_RECEIVE_INTERRUPT
                                            );
             }
+        }else{
+            EUSCI_A_SPI_transmitData(EUSCI_A2_BASE,0);
         }
-    }
     return;
+    }
 }
 

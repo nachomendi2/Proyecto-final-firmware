@@ -108,7 +108,7 @@ static void hal_system_ClockInit(void);
 void hal_system_Init(void)
 {
     hal_system_WatchdogInit();
-    hal_timer_a_Init();
+    hal_timer_a_InitWakeUpTimer();
 #ifndef __SVSH_ENABLE__
     PMM_disableSVSH();
 #endif

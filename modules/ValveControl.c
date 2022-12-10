@@ -121,8 +121,10 @@ bool valveControl_open()
 }
 
 void valveControl_delay(){
-    valve.command_pulse_delay = UT_TMR_DELAY_WAIT;
-    hal_timer_a_InitValveDelay();
+    if(valve.command_pulse_delay == UT_TMR_DELAY_INIT){
+        valve.command_pulse_delay = UT_TMR_DELAY_WAIT;
+        hal_timer_a_InitValveDelay();
+    }
 }
 
 bool valveControl_close()

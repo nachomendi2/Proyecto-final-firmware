@@ -25,6 +25,7 @@ bool ValveReceiveOrder () // Por ahora los tres botones dan la misma orden
 void valveControl_setup(ValveState initial_state)
 {
     //initial state should be loaded from FRAM, by default assume it's closed
+    valve.command_pulse_delay.restartAfterCompletion = false;
     if (initial_state == VALVE_INIT_STATE){
         valve.state = VALVE_CLOSED_STATE;
         valveControl_close();
@@ -121,8 +122,8 @@ bool valveControl_open()
 }
 
 void valveControl_delay(){
-    if(valve.command_pulse_delay == UT_TMR_DELAY_INIT){
-        valve.command_pulse_delay = UT_TMR_DELAY_WAIT;
+    if(valve.command_pulse_delay.state == UT_TMR_DELAY_INIT){
+        valve.command_pulse_delay.state = UT_TMR_DELAY_WAIT;
         hal_timer_a_InitValveDelay();
     }
 }
@@ -162,7 +163,7 @@ void valveControl_update ()
     switch(valve.state)
     {
     case VALVE_CLOSING_STATE:
-        if(UT_timer_delay(valve.command_pulse_delay)){
+        if(UT_timer_delay(&valve.command_pulse_delay)){
             GPIO_setOutputLowOnPin(
                 GPIO_PORT_P7,
                 GPIO_PIN0
@@ -180,11 +181,19 @@ void valveControl_update ()
              valve.state = VALVE_OPEN_STATE;
          }
          break;
+
+     /* This code is just an extra safety measure in case for some reason the state of
+     * the valve is undefined, however, if that happens the code will crash. So this
+     * extra step isn't needed.
+     *
+     case VALVE_OPEN_STATE: break;
+     case VALVE_CLOSED_STATE: break;
      default:
          // Should never happen
          valve.state = VALVE_CLOSED_STATE;
          valveControl_close();
          break;
+     */
     }
 
 }

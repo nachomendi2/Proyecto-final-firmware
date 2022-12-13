@@ -13,11 +13,12 @@
  * main.c
  */
 extern _iq16 totalizer;
-extern UT_TMR_DELAY_STATE wakeup_timer;
+extern ut_tmrDelay_t wakeup_timer;
 
 int main(void)
 {
     uint16_t reset_source = 0x00;
+    wakeup_timer.restartAfterCompletion = true;
     // --------- System Setup -------------
 
     hal_system_Init();

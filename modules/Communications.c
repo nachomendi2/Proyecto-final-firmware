@@ -238,11 +238,11 @@ SPI_Communications_Frame Communications_ProcessFrame(SPI_Communications_Frame re
         valveControl_open();
         break;
     case FRAME_REQUEST_CLOSE_VALVE:
-        valveControl_close();
         response.frame_Type = FRAME_RESPONSE_VALVE_ACK;
         response.frame_CRC = 40;
         response.frame_Length = 5;
         response.frame_Body = valve.state;
+        valveControl_close();
         break;
     }
 

@@ -26,7 +26,7 @@ typedef enum
 typedef struct
 {
     ValveState state;
-    UT_TMR_DELAY_STATE command_pulse_delay;
+    ut_tmrDelay_t command_pulse_delay;
 }ValveControl_Module;
 
 void valveControl_update();

@@ -12,8 +12,8 @@
 /*
  * main.c
  */
-extern _iq16 totalizer;
 extern ut_tmrDelay_t wakeup_timer;
+float f_totalizer;
 
 int main(void)
 {
@@ -55,7 +55,7 @@ int main(void)
 	         * las funcionalidades de sprintf. Esto ocupa memoria! solo lo uso ahora para debugear con el display
 	         * TODO: MODIFICAR EL PARAM "--printf_support" A "minimal" ENTRANDO EN PROPIEDADES->MSP430 COMPILER->ADVANCED OPTIONS->LANGUAGE OPTIONS
 	         */
-	        float f_totalizer = _IQ16toF(totalizer);
+	        f_totalizer = flowMeter_getTotalizer();
 
 	        sprintf(lcd_output, "%06f", f_totalizer); // casteo el flujo de int a string
 

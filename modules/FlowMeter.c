@@ -17,8 +17,7 @@
 
 /* ----- GLOBAL VARIABLES ----- */
 
-_iq16 totalizer = 0;
-uint16_t measurement_count = 0;
+flowMeter_Module flow_meter;
 
 extern int16_t gUSSBinaryPattern[USS_BINARY_ARRAY_MAX_SIZE];
 #ifdef USS_APP_RESONATOR_CALIBRATE_ENABLE
@@ -239,7 +238,13 @@ _iq16 flowMeter_getVolumeFlowRate(){
         hal_system_WatchdogFeed();
 #endif
 
-    return results.iq16VolumeFlowRate;
+        /* results are expressed in l/h, we have to convert them to m^3/h
+         *  that is: new_flow = measured_flow/1000  ~  measured_flow/1024
+         *  1024 = 64 * 16 so new_flow ~ (measured_flow/64)/16
+         *  this makes calculations way faster
+         *  also get absolute value (we don't care about the direction of the flow, only the modulus
+         */
+    return _IQ16abs( _IQdiv16( _IQdiv64( results.iq16VolumeFlowRate ) ) );
 }
 
 _iq16 flowMeter_getPressure(){
@@ -285,10 +290,19 @@ void flowMeter_measure(){
     flow_rate = flowMeter_getMassFlowRate(flow_rate);
 
     //add flow measurement to totalizer
-    measurement_count++;
-    totalizer += flow_rate;
+    flow_meter.measurement_count++;
+    flow_meter.totalizer += flow_rate;
 }
 
+float flowMeter_getTotalizer(){
+    return _IQ16toF(flow_meter.totalizer);
+}
+
+float flowMeter_getAverageMassFlowRate(){
+    _iq16 iq_count = _IQ16(flow_meter.measurement_count);
+    _iq16 avr_fixed = _IQ16mpy(flow_meter.totalizer,iq_count);
+    return _IQ16toF(avr_fixed);
+}
 
 
 

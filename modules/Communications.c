@@ -15,9 +15,6 @@
 #include <ValveControl.h>
 
 SPI_Communications_Module SPI_slave = {0};
-extern _iq16 totalizer;
-extern uint16_t measurement_count;
-extern ValveControl_Module valve;
 
 void Communications_setup(void){
 
@@ -83,6 +80,11 @@ void Communications_setup(void){
     // 5. Start eUSCI_A2 module:
     EUSCI_A_SPI_enable(EUSCI_A2_BASE);
 
+    // Aditional: 6. configure busy pin (PORT 2.3)
+    GPIO_setAsOutputPin(
+        GPIO_PORT_P2,
+        GPIO_PIN3
+        );
 }
 
 bool Communications_send(SPI_Communications_Frame frame){
@@ -214,7 +216,7 @@ SPI_Communications_Frame Communications_ProcessFrame(SPI_Communications_Frame re
                     uint8_t b[4];
                 }body_afr;
 
-        body_afr.volumeFlowRate = _IQ16toF(totalizer);
+        body_afr.volumeFlowRate = flowMeter_getTotalizer();
         response.frame_Body = body_afr.b;
     case FRAME_REQUEST_TOTALIZER:
         response.frame_Type = FRAME_RESPONSE_TOTALIZER;
@@ -225,23 +227,24 @@ SPI_Communications_Frame Communications_ProcessFrame(SPI_Communications_Frame re
             float volumeFlowRate;
             uint8_t b[4];
         }body_totalizer;
-        _iq16 iq_count = _IQ16(measurement_count);
 
-        body_totalizer.volumeFlowRate = _IQ16toF(_IQ16mpy(totalizer,iq_count));
+        body_totalizer.volumeFlowRate = flowMeter_getAverageMassFlowRate();
         response.frame_Body = body_totalizer.b;
         break;
     case FRAME_REQUEST_OPEN_VALVE:
+        Communications_setBusy();
         response.frame_Type = FRAME_RESPONSE_VALVE_ACK;
         response.frame_CRC = 40;
         response.frame_Length = 5;
-        response.frame_Body = valve.state;
+        response.frame_Body = valveControl_getValveState();
         valveControl_open();
         break;
     case FRAME_REQUEST_CLOSE_VALVE:
+        Communications_setBusy();
         response.frame_Type = FRAME_RESPONSE_VALVE_ACK;
         response.frame_CRC = 40;
         response.frame_Length = 5;
-        response.frame_Body = valve.state;
+        response.frame_Body = valveControl_getValveState();
         valveControl_close();
         break;
     }
@@ -249,6 +252,19 @@ SPI_Communications_Frame Communications_ProcessFrame(SPI_Communications_Frame re
     return response;
 }
 
+void Communications_setBusy(){
+    GPIO_setOutputHighOnPin(
+        GPIO_PORT_P2,
+        GPIO_PIN3
+        );
+}
+
+void Communications_clearBusy(){
+    GPIO_setOutputLowOnPin(
+        GPIO_PORT_P2,
+        GPIO_PIN3
+        );
+}
 
 void Communications_update(){
 

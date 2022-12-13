@@ -32,7 +32,6 @@ int hal_timer_a_InitWakeUpTimer(){
 }
 
 void hal_timer_a_InitValveDelay(){
-    // clear timer
 
     // Configure TA4 for timing valve command pulse duration
     Timer_A_initUpModeParam timer_valve_config;

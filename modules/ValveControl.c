@@ -7,6 +7,7 @@
 
 #include "ValveControl.h"
 #include <hal_timer_a.h>
+#include <Communications.h>
 
 ValveControl_Module valve;
 
@@ -22,7 +23,11 @@ bool ValveReceiveOrder () // Por ahora los tres botones dan la misma orden
     }
 }
 
-void valveControl_setup(ValveState initial_state)
+ValveState_t valveControl_getValveState(){
+    return valve.state;
+}
+
+void valveControl_setup(ValveState_t initial_state)
 {
     //initial state should be loaded from FRAM, by default assume it's closed
     valve.command_pulse_delay.restartAfterCompletion = false;
@@ -168,6 +173,7 @@ void valveControl_update ()
                 GPIO_PORT_P7,
                 GPIO_PIN0
                 );
+            Communications_clearBusy();
             valve.state = VALVE_CLOSED_STATE;
 
         }
@@ -178,6 +184,7 @@ void valveControl_update ()
                  GPIO_PORT_P1,
                  GPIO_PIN1
                  );
+             Communications_clearBusy();
              valve.state = VALVE_OPEN_STATE;
          }
          break;

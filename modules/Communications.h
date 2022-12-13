@@ -28,11 +28,11 @@ typedef enum
     COMMUNICATION_STATUS_LISTENING,
     COMMUNICATION_STATUS_PROCESSING_REQUEST,
     COMMUNICATION_STATUS_SENDING_RESPONSE
-}SPI_Communication_Status;
+}SPI_Communication_Status_t;
 
 typedef struct
 {
-    SPI_Communication_Status communication_Status;
+    SPI_Communication_Status_t communication_Status;
     uint8_t byte_Read_Counter;
     uint8_t byte_Transmit_Counter;
     uint8_t byte_Read_buffer[SPI_RX_MAX_BUFFER_SIZE];
@@ -84,5 +84,9 @@ bool Communications_isActive();
 SPI_Communications_Frame Communications_ProcessFrame(SPI_Communications_Frame request);
 
 void Communications_update();
+
+void Communications_setBusy();
+
+void Communications_clearBusy();
 
 #endif /* MODULES_COMMUNICATIONS_H_ */

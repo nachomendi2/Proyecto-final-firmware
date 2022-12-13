@@ -23,6 +23,15 @@
 #define MASS_FLOW_RATE_CALCULATION_CONST_2 17901158// 273.15 expressed in fixed point
 #define MASS_FLOW_RATE_CALCULATION_CONST_3 66404352// 1013.25 expressed in fixed point
 
+
+
+typedef struct
+{
+    _iq16 totalizer;
+    uint16_t measurement_count;
+}flowMeter_Module;
+
+
 USS_message_code flowMeter_setup();
 
 _iq16 flowMeter_getVolumeFlowRate();

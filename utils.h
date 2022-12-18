@@ -25,4 +25,6 @@ typedef struct
 
 bool UT_timer_delay(ut_tmrDelay_t *timer_delay);
 
+uint8_t UT_mod2div(uint8_t *dividend, uint8_t divisor, uint8_t pol_length);
+
 #endif /* UTILS_H_ */

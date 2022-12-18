@@ -32,8 +32,8 @@ void valveControl_setup(ValveState_t initial_state)
     //initial state should be loaded from FRAM, by default assume it's closed
     valve.command_pulse_delay.restartAfterCompletion = false;
     if (initial_state == VALVE_INIT_STATE){
-        valve.state = VALVE_CLOSED_STATE;
-        valveControl_close();
+        valve.state = VALVE_OPEN_STATE;
+        valveControl_open();
     }else{
         valve.state = initial_state;
     }
@@ -112,9 +112,9 @@ bool valveControl_open()
      7: TxPwr   -> P1.0
      8: RxSel2  -> P3.7
     */
-    if (valve.state != VALVE_CLOSED_STATE){
-        return false;
-    }
+    //if (valve.state != VALVE_CLOSED_STATE){
+    //    return false;
+    //}
 
     GPIO_setOutputHighOnPin(
         GPIO_PORT_P1,

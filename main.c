@@ -14,6 +14,8 @@
  */
 extern ut_tmrDelay_t wakeup_timer;
 float f_totalizer;
+uint8_t aa;
+bool test2;
 
 int main(void)
 {
@@ -32,7 +34,7 @@ int main(void)
 	__enable_interrupt();
 	flowMeter_setup();
 	Communications_setup();
-	valveControl_setup(VALVE_CLOSED_STATE);
+	valveControl_setup(VALVE_INIT_STATE);
 
 	// --------- main program loop ----------
 	while(1){
@@ -44,8 +46,8 @@ int main(void)
 
 	        // Enter LPM
 	    }else{
-	        valveControl_update();
 	        flowMeter_measure();
+	        valveControl_update();
 
 	        char lcd_output[6] = "";
 
@@ -58,6 +60,15 @@ int main(void)
 	        f_totalizer = flowMeter_getTotalizer();
 
 	        sprintf(lcd_output, "%06f", f_totalizer); // casteo el flujo de int a string
+
+	        SPI_Communications_Frame frame;
+	                   frame.frame_Type = FRAME_RESPONSE_VALVE_ACK;
+	                   frame.frame_Length = 6;
+	                   static uint8_t test[1] = {0};
+	                   frame.frame_Body = test;
+	                   aa = Communications_calculateCRC(frame);
+	                   frame.frame_CRC = aa+5;
+	                   test2 = Communications_verifyCRC(frame);
 
 	        // Display on LCD:
 	        uint8_t j=0;

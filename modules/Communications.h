@@ -15,6 +15,9 @@
 #define SPI_RX_MAX_BUFFER_SIZE 5
 #define SPI_TX_MAX_BUFFER_SIZE 30
 
+// Define the CRC8 polynomial to use (by default use Dallas/Maxim: 10011000
+#define SPI_CRC_POLYNOMIAL 0x8C
+
 /* Communication status state machine:
  * Communications are handled as a state machine with 4 possible states:
  *  COMMUNICATION_STATUS_INACTIVE: default state, changes to next state when SS=LOW

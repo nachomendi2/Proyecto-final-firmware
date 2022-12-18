@@ -46,4 +46,6 @@ _iq16 flowMeter_getMassFlowRate(_iq16 vol_flow_rate);
 
 void flowMeter_measure();
 
+float flowMeter_getTotalizer();
+
 #endif /* MODULES_FLOWMETER_H_ */

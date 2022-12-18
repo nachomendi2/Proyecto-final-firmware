@@ -40,6 +40,8 @@ uint16_t dcOffsetEstcount;
 USS_message_code flowMeter_setup(){
 
     USS_message_code exit_status = USS_message_code_no_error;
+    flow_meter.totalizer = 0;
+    flow_meter.measurement_count = 0;
 
 #ifdef USS_APP_RESONATOR_CALIBRATE_ENABLE
     resCalibcount = 0;
@@ -244,7 +246,8 @@ _iq16 flowMeter_getVolumeFlowRate(){
          *  this makes calculations way faster
          *  also get absolute value (we don't care about the direction of the flow, only the modulus
          */
-    return _IQ16abs( _IQdiv16( _IQdiv64( results.iq16VolumeFlowRate ) ) );
+    _iq16 vol_flow_rate = results.iq16VolumeFlowRate;
+    return vol_flow_rate;//_IQ16abs( _IQdiv16( _IQdiv64( results.iq16VolumeFlowRate ) ) );
 }
 
 _iq16 flowMeter_getPressure(){
@@ -291,7 +294,8 @@ void flowMeter_measure(){
 
     //add flow measurement to totalizer
     flow_meter.measurement_count++;
-    flow_meter.totalizer += flow_rate;
+    flow_meter.totalizer = flow_rate;
+    __no_operation();
 }
 
 float flowMeter_getTotalizer(){

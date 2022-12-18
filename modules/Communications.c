@@ -13,8 +13,10 @@
 #include <IQmathlib.h>
 #include "utils.h"
 #include <ValveControl.h>
+#include "flowMeter.h"
 
 SPI_Communications_Module SPI_slave = {0};
+extern flowMeter_Module flow_meter;
 
 void Communications_setup(void){
 
@@ -332,5 +334,41 @@ void Communications_update(){
         }
     return;
     }
+}
+
+uint8_t byte;
+
+uint8_t Communications_calculateCRC(SPI_Communications_Frame frame){
+   uint8_t data_length = frame.frame_Length - 1; // exclude CRC byte
+   uint8_t *data = calloc(data_length, sizeof(uint8_t));
+   data[0] = 42;
+   data[1] = frame.frame_Type;
+   data[2] = frame.frame_Length;
+   for(uint8_t i=0;i<(data_length-3); i++){
+       data[i+3] = *(frame.frame_Body + i);
+   }
+   uint8_t crc = UT_mod2div(data, SPI_CRC_POLYNOMIAL ,data_length);
+   free(data);
+   return crc;
+}
+
+bool Communications_verifyCRC(SPI_Communications_Frame frame){
+    uint8_t data_length = frame.frame_Length;
+    uint8_t *data = calloc(data_length, sizeof(uint8_t));
+    data[0] = 42;
+    data[1] = frame.frame_Type;
+    data[2] = frame.frame_Length;
+    for(uint8_t i=0;i<(data_length-4); i++){
+        data[i+3] = *(frame.frame_Body + i);
+    }
+    data[data_length-1] = frame.frame_CRC;
+    uint8_t rem = UT_mod2div(data, SPI_CRC_POLYNOMIAL, data_length);
+    free(data);
+    if(rem == 0){
+        return true;
+    }else{
+        return false;
+    }
+
 }
 

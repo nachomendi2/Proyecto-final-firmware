@@ -109,7 +109,7 @@ Modulo de comunicacion por SPI.
 ### ValveControl:
 Modulo de control de las valvulas.
 **Funciones:**
-- `valveControl_update()`: Abre la valvula, esto no es inmediato,, pone un pin de control en 1 durante un tiempo hasta que la valvula se cierra completamente. Devuelve `true` si la valvula comenzo a abrirse, `false` si no puede abrirse.
+- `valveControl_update()`: Abre la valvula, esto no es inmediato, pone un pin de control en 1 durante un tiempo hasta que la valvula se cierra completamente. Devuelve `true` si la valvula comenzo a abrirse, `false` si no puede abrirse.
 - `valveControl_close()`: Cierra la valvula, esto no es inmediato, pone un pin de control en 1 durante un tiempo hasta que la valvula se cierra completamente. Devuelve `true` si la valvula comenzo a cerrarse, `false` si la valvula no puede cerrarse.
 - `valveControl_delay()`: Genera un delay  de 4 segundos utilizado para apagar el/los pines de control cuando se termina de abrir/cerrar la valvula. Utiliza el timer A4. Solo puede haber uno de estos delays a la vez.
 - `valveControl_update()`: Funcion principal del modulo, debe llamarse periodicamente desde el loop principal, actualiza el estado de las valvulas.

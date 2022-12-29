@@ -16,7 +16,6 @@
 #include "flowMeter.h"
 
 SPI_Communications_Module SPI_slave = {0};
-extern flowMeter_Module flow_meter;
 
 void Communications_setup(void){
 
@@ -107,11 +106,7 @@ bool Communications_send(SPI_Communications_Frame frame){
         SPI_slave.byte_Transmit_buffer[i+3] = *(frame.frame_Body + i);
     }
 
-    SPI_slave.byte_Transmit_buffer[frame.frame_Length - 1] = frame.frame_CRC;
-
-    // Transmit first byte
-    //EUSCI_A_SPI_transmitData(EUSCI_A2_BASE, SPI_slave.byte_Transmit_buffer[SPI_slave.byte_Transmit_Counter] );
-    //SPI_slave.byte_Transmit_Counter++;
+    SPI_slave.byte_Transmit_buffer[frame.frame_Length - 1] = Communications_CRC8(SPI_slave.byte_Transmit_buffer, frame.frame_Length - 1);
 
     // Enable transmit interrupts
     EUSCI_A_SPI_clearInterrupt(EUSCI_A2_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
@@ -202,56 +197,110 @@ bool Communications_isActive(){
     }
 }
 
-SPI_Communications_Frame Communications_ProcessFrame(SPI_Communications_Frame request){
+void Communications_ProcessRequest(SPI_Communications_Frame request){
 
-    // Communications_CheckCRC();
     SPI_Communications_Frame response;
+    ValveState_t valve_state;
+
+    // define auxiliary union variable to convert from float to an array of bytes:
+    union {
+        float float_value;
+        uint8_t byte_array[4];
+    }aux_float2bytes;
 
     switch(request.frame_Type){
-    case FRAME_REQUEST_AVERAGE_MASS_FLOW_RATE:
-        response.frame_Type = FRAME_RESPONSE_AVERAGE_MASS_FLOW_RATE;
-        response.frame_CRC = 40;
-        response.frame_Length = 8;
+    case FRAME_REQUEST_STATUS:
+        uint8_t status_body[29];
+        status_body[0] = valveControl_getValveState();
+        aux_float2bytes.float_value = flowMeter_getVolumeFlowRate();
+        for (uint8_t i=1; i<5;i++){
+            status_body[i] = aux_float2bytes.byte_array[i-1];
+        }
+        aux_float2bytes.float_value = flowMeter_getPressure();
+        for (uint8_t i=5; i<9;i++){
+            status_body[i] = aux_float2bytes.byte_array[i-5];
+        }
+        aux_float2bytes.float_value = flowMeter_getTemperature();
+        for (uint8_t i=9; i<13;i++){
+            status_body[i] = aux_float2bytes.byte_array[i-9];
+        }
+        aux_float2bytes.float_value = flowMeter_getMassFlowRate();
+        for (uint8_t i=13; i<17;i++){
+            status_body[i] = aux_float2bytes.byte_array[i-13];
+        }
+        // TODO: measure battery
+        for (uint8_t i=17; i<21;i++){
+            status_body[i] = 30;
+        }
+        aux_float2bytes.float_value = flowMeter_getTotalizer();
+        for (uint8_t i=21; i<25;i++){
+            status_body[i] = aux_float2bytes.byte_array[i-21];
+        }
+        aux_float2bytes.float_value = flowMeter_getAverageMassFlowRate();
+        for (uint8_t i=25; i<29;i++){
+            status_body[i] = aux_float2bytes.byte_array[i-25];
+        }
 
-        static union {
-                    float volumeFlowRate;
-                    uint8_t b[4];
-                }body_afr;
-
-        body_afr.volumeFlowRate = flowMeter_getTotalizer();
-        response.frame_Body = body_afr.b;
-    case FRAME_REQUEST_TOTALIZER:
-        response.frame_Type = FRAME_RESPONSE_TOTALIZER;
-        response.frame_CRC = 40;
-        response.frame_Length = 8;
-
-        static union {
-            float volumeFlowRate;
-            uint8_t b[4];
-        }body_totalizer;
-
-        body_totalizer.volumeFlowRate = flowMeter_getAverageMassFlowRate();
-        response.frame_Body = body_totalizer.b;
+        response.frame_Type = FRAME_RESPONSE_STATUS;
+        response.frame_Length = 33;
         break;
+
+    case FRAME_REQUEST_AVERAGE_MASS_FLOW_RATE:
+
+        // Get flow rate as float and convert to byte array using auxiliary union variable:
+        aux_float2bytes.float_value = flowMeter_getAverageMassFlowRate();
+        response.frame_Body = aux_float2bytes.byte_array;
+        response.frame_Type = FRAME_RESPONSE_AVERAGE_MASS_FLOW_RATE;
+        response.frame_Length = 8;
+        break;
+
+    case FRAME_REQUEST_TOTALIZER:
+
+        // Get flow rate as float and convert to byte array using auxiliary union variable:
+        aux_float2bytes.float_value = flowMeter_getTotalizer();
+        response.frame_Body = aux_float2bytes.byte_array;
+        response.frame_Type = FRAME_RESPONSE_TOTALIZER;
+        response.frame_Length = 8;
+        break;
+
     case FRAME_REQUEST_OPEN_VALVE:
+
+        // Set busy pin & set frame body to the current state of the valve:
+        valve_state = valveControl_getValveState();
         Communications_setBusy();
+        response.frame_Body = &valve_state;
         response.frame_Type = FRAME_RESPONSE_VALVE_ACK;
-        response.frame_CRC = 40;
         response.frame_Length = 5;
-        response.frame_Body = valveControl_getValveState();
         valveControl_open();
         break;
+
     case FRAME_REQUEST_CLOSE_VALVE:
+
+        // Set busy pin & set frame body to the current state of the valve:
+        valve_state = valveControl_getValveState();
         Communications_setBusy();
+        response.frame_Body = &valve_state;
         response.frame_Type = FRAME_RESPONSE_VALVE_ACK;
-        response.frame_CRC = 40;
         response.frame_Length = 5;
-        response.frame_Body = valveControl_getValveState();
         valveControl_close();
         break;
+    case FRAME_REQUEST_CONFIGURE:
+
+        response.frame_Type = 0; // type = 0 means No response
+        union{
+            uint8_t byte_array[2];
+            uint16_t int_value;
+        }aux_bytes2uint16;
+        aux_bytes2uint16.byte_array[0] = request.frame_Body[0];
+        aux_bytes2uint16.byte_array[1] = request.frame_Body[1];
+        flowMeter_setMeasurementTimeInterval(aux_bytes2uint16.int_value);
     }
 
-    return response;
+    // CRC is calculated inside Communications_send()
+    if(response.frame_Type != 0){
+        Communications_send(response);
+    }
+    return;
 }
 
 void Communications_setBusy(){
@@ -294,17 +343,37 @@ void Communications_update(){
             }
             SPI_slave.byte_Read_Counter++;
 
-            if(SPI_slave.byte_Read_Counter == (SPI_slave.received_Frame_Length - 1) && SPI_slave.received_Frame_Length>0){
+            if(SPI_slave.byte_Read_Counter == (SPI_slave.received_Frame_Length) && SPI_slave.received_Frame_Length>0){
                 EUSCI_A_SPI_disableInterrupt(EUSCI_A2_BASE,EUSCI_A_SPI_RECEIVE_INTERRUPT);
                 SPI_slave.byte_Read_Counter = 0;
                 SPI_slave.communication_Status = COMMUNICATION_STATUS_SENDING_RESPONSE;
+
+                // Verify frame CRC (check if remainder != 0)
+                if(Communications_CRC8(SPI_slave.byte_Read_buffer, SPI_slave.received_Frame_Length) != 0){
+                    //return;
+                }
+                SPI_slave.received_Frame_Length = 0;
+
                 SPI_Communications_Frame request;
                 request.frame_Type = SPI_slave.byte_Read_buffer[1];
                 request.frame_Length = SPI_slave.byte_Read_buffer[2];
-                SPI_slave.received_Frame_Length = 0;
                 request.frame_CRC = SPI_slave.byte_Read_buffer[SPI_slave.byte_Read_Counter - 1];
-                SPI_Communications_Frame response = Communications_ProcessFrame(request);
-                Communications_send(response);
+
+                // Check if received frame has a body (if length > 4 means there are more bytes than just head, type, length & CRC)
+                if(request.frame_Length > 4){
+
+                    // read buffer must be freed for incoming frames, allocate memory to store the current frame's body
+                    uint8_t *body = malloc(request.frame_Length - 4);
+                    for(uint8_t i = 0; i < (request.frame_Length - 4); i++){
+                        body[i] = SPI_slave.byte_Read_buffer[3+i];
+                    }
+                    request.frame_Body = body;
+                    Communications_ProcessRequest(request);
+                    free(body);
+
+                }else{
+                    Communications_ProcessRequest(request);
+                }
             }
         }
     }
@@ -313,12 +382,12 @@ void Communications_update(){
         SPI_slave.byte_Tx_ready = false;
 
         if(SPI_slave.communication_Status == COMMUNICATION_STATUS_SENDING_RESPONSE){
-            if(SPI_slave.byte_Transmit_Counter < SPI_slave.transmit_Frame_length){
-                EUSCI_A_SPI_transmitData(EUSCI_A2_BASE, SPI_slave.byte_Transmit_buffer[SPI_slave.byte_Transmit_Counter] );
-                SPI_slave.byte_Transmit_Counter++;
-            }
 
-            if (SPI_slave.byte_Transmit_Counter == SPI_slave.transmit_Frame_length){
+            // Check if the end of the frame was reached (counter >= frame length):
+            if (SPI_slave.byte_Transmit_Counter >= SPI_slave.transmit_Frame_length){
+
+                // Transmit zeroes to indicate end of communication:
+                EUSCI_A_SPI_transmitData(EUSCI_A2_BASE,0);
                 EUSCI_A_SPI_disableInterrupt(EUSCI_A2_BASE,EUSCI_A_SPI_TRANSMIT_INTERRUPT);
                 SPI_slave.communication_Status = COMMUNICATION_STATUS_LISTENING;
                 SPI_slave.byte_Transmit_Counter = 0;
@@ -328,8 +397,15 @@ void Communications_update(){
                                            EUSCI_A2_BASE,
                                            EUSCI_A_SPI_RECEIVE_INTERRUPT
                                            );
+                return;
             }
+
+            // If not, transmit next byte & increase counter
+            EUSCI_A_SPI_transmitData(EUSCI_A2_BASE, SPI_slave.byte_Transmit_buffer[SPI_slave.byte_Transmit_Counter] );
+            SPI_slave.byte_Transmit_Counter++;
+
         }else{
+            // If the system isn't ready to send a response or is unavailable, transmit zeroes:
             EUSCI_A_SPI_transmitData(EUSCI_A2_BASE,0);
         }
     return;
@@ -338,37 +414,22 @@ void Communications_update(){
 
 uint8_t byte;
 
-uint8_t Communications_calculateCRC(SPI_Communications_Frame frame){
-   uint8_t data_length = frame.frame_Length - 1; // exclude CRC byte
-   uint8_t *data = calloc(data_length, sizeof(uint8_t));
-   data[0] = 42;
-   data[1] = frame.frame_Type;
-   data[2] = frame.frame_Length;
-   for(uint8_t i=0;i<(data_length-3); i++){
-       data[i+3] = *(frame.frame_Body + i);
-   }
-   uint8_t crc = UT_mod2div(data, SPI_CRC_POLYNOMIAL ,data_length);
-   free(data);
-   return crc;
-}
 
-bool Communications_verifyCRC(SPI_Communications_Frame frame){
-    uint8_t data_length = frame.frame_Length;
-    uint8_t *data = calloc(data_length, sizeof(uint8_t));
-    data[0] = 42;
-    data[1] = frame.frame_Type;
-    data[2] = frame.frame_Length;
-    for(uint8_t i=0;i<(data_length-4); i++){
-        data[i+3] = *(frame.frame_Body + i);
-    }
-    data[data_length-1] = frame.frame_CRC;
-    uint8_t rem = UT_mod2div(data, SPI_CRC_POLYNOMIAL, data_length);
-    free(data);
-    if(rem == 0){
-        return true;
-    }else{
-        return false;
+/*  CRC8 implementation via lookup table. The returned value is set as the frame CRC byte
+ *  this function is also used to validate if a frame is valid, by checking if the returned
+ *  value equals zero. This is an implementation of the Dallas Semiconductor standard of CRC8
+ *  and thus the used polynomial is 0x31, which is implicit on the results of the lookup table
+ *  Based on the 2012 algorithm by Khusainov Timur. Link: https://github.com/timypik/Common-Library/blob/master/crc8.c
+ */
+uint8_t Communications_CRC8(uint8_t *data, uint8_t data_length){
+    uint8_t crc_result = 0;
+
+    // Data length can vary depending on whether CRC byte shall be included or not
+    while(data_length--){
+        crc_result = CRC8_TABLE[crc_result ^ *(data++)];
     }
 
+    return crc_result;
 }
+
 

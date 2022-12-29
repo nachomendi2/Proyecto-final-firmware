@@ -33,7 +33,7 @@ uint8_t UT_mod2div(uint8_t *dividend, uint8_t divisor, uint8_t pol_length){
         uint8_t sum;
        for(uint8_t i=0;i<pol_length;i++)
        {
-          extract = *dividend;
+          extract = *dividend; //*(dividend+i);
           for (uint8_t tempI = 8; tempI; tempI--)
           {
              sum = (remainder ^ extract) & 0x01;

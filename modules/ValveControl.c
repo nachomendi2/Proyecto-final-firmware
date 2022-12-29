@@ -23,7 +23,7 @@ bool ValveReceiveOrder () // Por ahora los tres botones dan la misma orden
     }
 }
 
-ValveState_t valveControl_getValveState(){
+inline ValveState_t valveControl_getValveState(){
     return valve.state;
 }
 
@@ -148,9 +148,9 @@ bool valveControl_close()
      7: TxPwr   -> P1.0
      8: RxSel2  -> P3.7
     */
-    if (valve.state != VALVE_OPEN_STATE){
-        return false;
-    }
+    //if (valve.state != VALVE_OPEN_STATE){
+    //    return false;
+    //}
 
     GPIO_setOutputHighOnPin(
         GPIO_PORT_P7,

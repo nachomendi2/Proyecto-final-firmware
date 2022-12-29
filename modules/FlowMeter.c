@@ -14,6 +14,7 @@
 #include "utils.h"
 #include <IQmathlib.h>
 #include <stdbool.h>
+#include <hal_timer_a.h>
 
 /* ----- GLOBAL VARIABLES ----- */
 
@@ -42,6 +43,8 @@ USS_message_code flowMeter_setup(){
     USS_message_code exit_status = USS_message_code_no_error;
     flow_meter.totalizer = 0;
     flow_meter.measurement_count = 0;
+    flow_meter.pressure = _IQ16(1.898);
+    flow_meter.temperature = _IQ16(15.F);
 
 #ifdef USS_APP_RESONATOR_CALIBRATE_ENABLE
     resCalibcount = 0;
@@ -122,7 +125,7 @@ USS_message_code flowMeter_setup(){
     return exit_status;
 }
 
-_iq16 flowMeter_getVolumeFlowRate(){
+_iq16 flowMeter_measureVolumeFlowRate(){
     USS_Algorithms_Results_fixed_point results; //results in fixed point format
     USS_message_code exit_status = USS_message_code_no_error;
 
@@ -250,24 +253,24 @@ _iq16 flowMeter_getVolumeFlowRate(){
     return vol_flow_rate;//_IQ16abs( _IQdiv16( _IQdiv64( results.iq16VolumeFlowRate ) ) );
 }
 
-_iq16 flowMeter_getPressure(){
-    return _IQ16(1.898);
+inline float flowMeter_getPressure(){
+    return _IQ16toF(flow_meter.pressure);
 }
 
-_iq16 flowMeter_getTemperature(){
-    return _IQ16(15.F); // expressed in C
+inline float flowMeter_getTemperature(){
+    return _IQ16toF(flow_meter.temperature); //expressed in C
 }
 
-_iq16 flowMeter_getDensity(){
+inline _iq16 flowMeter_getDensity(){
     return LPG_REFERENCE_DENSITY;
 }
 
-_iq16 flowMeter_getMassFlowRate(_iq16 vol_flow_rate){
+_iq16 flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
     // calculate mass flow rate, in order to save memory calculations will be done reusing 2 axiliary variables:
 
     // get temperature & pressure
-    _iq16 aux1 = flowMeter_getTemperature();
-    _iq16 aux2 = flowMeter_getPressure();
+    _iq16 aux1 = flow_meter.temperature;
+    _iq16 aux2 = flow_meter.pressure;
 
     aux1 = _IQ16div(
             MASS_FLOW_RATE_CALCULATION_CONST_1,
@@ -282,15 +285,17 @@ _iq16 flowMeter_getMassFlowRate(_iq16 vol_flow_rate){
     return _IQ16mpy(aux1, flowMeter_getDensity());
 }
 
-void flowMeter_measure(){
+void flowMeter_update(){
     // main loop of the flow meter module
     // Measures mass flow rate, updates totalizer & handles overflows (WIP)
 
     // first, get the volume flow rate:
-    _iq16 flow_rate = flowMeter_getVolumeFlowRate();
+    _iq16 flow_rate = flowMeter_measureVolumeFlowRate();
+    flow_meter.last_volume_flow_rate = flow_rate;
 
     //convert to mass flow rate:
-    flow_rate = flowMeter_getMassFlowRate(flow_rate);
+    flow_rate = flowMeter_calculateMassFlowRate(flow_rate);
+    flow_meter.last_mass_flow_rate = flow_rate;
 
     //add flow measurement to totalizer
     flow_meter.measurement_count++;
@@ -298,16 +303,28 @@ void flowMeter_measure(){
     __no_operation();
 }
 
-float flowMeter_getTotalizer(){
+inline float flowMeter_getTotalizer(){
     return _IQ16toF(flow_meter.totalizer);
 }
 
-float flowMeter_getAverageMassFlowRate(){
+inline float flowMeter_getAverageMassFlowRate(){
     _iq16 iq_count = _IQ16(flow_meter.measurement_count);
     _iq16 avr_fixed = _IQ16mpy(flow_meter.totalizer,iq_count);
     return _IQ16toF(avr_fixed);
 }
 
+inline float flowMeter_getVolumeFlowRate(){
+    return _IQ16toF(flow_meter.last_volume_flow_rate);
+}
+
+inline float flowMeter_getMassFlowRate(){
+    return _IQ16toF(flow_meter.last_mass_flow_rate);
+}
+
+void flowMeter_setMeasurementTimeInterval(uint16_t interval){
+    hal_timer_a_setWakeUptimerPeriod(interval*512);
+    flow_meter.measure_interval = interval;
+}
 
 
 

@@ -10,6 +10,8 @@
 
 int hal_timer_a_InitWakeUpTimer();
 
+inline void hal_timer_a_setWakeUptimerPeriod(uint16_t time);
+
 void hal_timer_a_InitValveDelay();
 
 #endif /* HAL_FR6043EVM_HAL_TIMER_A_H_ */

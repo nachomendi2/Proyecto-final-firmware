@@ -46,7 +46,7 @@ int main(void)
 
 	        // Enter LPM
 	    }else{
-	        flowMeter_measure();
+	        flowMeter_update();
 	        valveControl_update();
 
 	        char lcd_output[6] = "";
@@ -61,14 +61,14 @@ int main(void)
 
 	        sprintf(lcd_output, "%06f", f_totalizer); // casteo el flujo de int a string
 
-	        SPI_Communications_Frame frame;
+	        /*SPI_Communications_Frame frame;
 	                   frame.frame_Type = FRAME_RESPONSE_VALVE_ACK;
 	                   frame.frame_Length = 6;
 	                   static uint8_t test[1] = {0};
 	                   frame.frame_Body = test;
 	                   aa = Communications_calculateCRC(frame);
 	                   frame.frame_CRC = aa+5;
-	                   test2 = Communications_verifyCRC(frame);
+	                   test2 = Communications_verifyCRC(frame);*/
 
 	        // Display on LCD:
 	        uint8_t j=0;

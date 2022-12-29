@@ -29,23 +29,34 @@ typedef struct
 {
     _iq16 totalizer;
     uint16_t measurement_count;
+    _iq16 temperature;
+    _iq16 pressure;
+    _iq16 last_volume_flow_rate;
+    _iq16 last_mass_flow_rate;
+    uint16_t measure_interval;
 }flowMeter_Module;
 
 
 USS_message_code flowMeter_setup();
 
-_iq16 flowMeter_getVolumeFlowRate();
+_iq16 flowMeter_measureVolumeFlowRate();
 
-_iq16 flowMeter_getTemperature();
+inline float flowMeter_getTemperature();
 
-_iq16 flowMeter_getDensity();
+inline _iq16 flowMeter_getDensity();
 
-_iq16 flowMeter_getPressure();
+inline float flowMeter_getPressure();
 
-_iq16 flowMeter_getMassFlowRate(_iq16 vol_flow_rate);
+_iq16 flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate);
 
-void flowMeter_measure();
+void flowMeter_update();
 
-float flowMeter_getTotalizer();
+inline float flowMeter_getAverageMassFlowRate();
+
+inline float flowMeter_getVolumeFlowRate();
+
+inline float flowMeter_getTotalizer();
+
+inline float flowMeter_getMassFlowRate();
 
 #endif /* MODULES_FLOWMETER_H_ */

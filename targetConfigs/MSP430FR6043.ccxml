@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configurations XML_version="1.2" id="configurations_0">
-                                                
+                                                    
+    
     
     
     
@@ -12,7 +13,8 @@
     
     
     <configuration XML_version="1.2" id="configuration_0">
-                                                                                                
+                                                                                                        
+        
         
         
         
@@ -24,7 +26,8 @@
         
         
         <instance XML_version="1.2" desc="TI MSP430 USB1" href="connections/TIMSP430-USB.xml" id="TI MSP430 USB1" xml="TIMSP430-USB.xml" xmlpath="connections"/>
-                                                                                                
+                                                                                                        
+        
         
         
         
@@ -36,7 +39,8 @@
         
         
         <connection XML_version="1.2" id="TI MSP430 USB1">
-                                                                                                                                                
+                                                                                                                                                            
+            
             
             
             
@@ -48,7 +52,8 @@
             
             
             <instance XML_version="1.2" href="drivers/msp430_emu.xml" id="drivers" xml="msp430_emu.xml" xmlpath="drivers"/>
-                                                                                                                                                
+                                                                                                                                                            
+            
             
             
             
@@ -60,7 +65,8 @@
             
             
             <platform XML_version="1.2" id="platform_0">
-                                                                                                                                                                                                
+                                                                                                                                                                                                                
+                
                 
                 
                 
@@ -72,7 +78,8 @@
                 
                 
                 <instance XML_version="1.2" desc="MSP430FR6043" href="devices/MSP430FR6043.xml" id="MSP430FR6043" xml="MSP430FR6043.xml" xmlpath="devices"/>
-                                                                                                                                                                                            
+                                                                                                                                                                                                            
+            
             
             
             
@@ -84,7 +91,8 @@
             
             
             </platform>
-                                                                                                                                            
+                                                                                                                                                        
+        
         
         
         
@@ -96,7 +104,8 @@
         
         
         </connection>
-                                                                                            
+                                                                                                    
+    
     
     
     
@@ -108,7 +117,8 @@
     
     
     </configuration>
-                                            
+                                                
+
 
 
 

@@ -27,15 +27,12 @@ inline ValveState_t valveControl_getValveState(){
     return valve.state;
 }
 
-void valveControl_setup(ValveState_t initial_state)
+void valveControl_setup()
 {
-    //initial state should be loaded from FRAM, by default assume it's closed
-    valve.command_pulse_delay.restartAfterCompletion = false;
-    if (initial_state == VALVE_INIT_STATE){
+    //initial state should be loaded from FRAM, if no state loaded (init state) assume it's open
+    if (valve.state == VALVE_INIT_STATE){
         valve.state = VALVE_OPEN_STATE;
         valveControl_open();
-    }else{
-        valve.state = initial_state;
     }
 
     //Seteo los puertos expuestos del GPIO del EVM, y sus pines. (OUTPUT). Comienzan todas en LOW.
@@ -127,8 +124,8 @@ bool valveControl_open()
 }
 
 void valveControl_delay(){
-    if(valve.command_pulse_delay.state == UT_TMR_DELAY_INIT){
-        valve.command_pulse_delay.state = UT_TMR_DELAY_WAIT;
+    if(valve.command_Pulse_Delay.state == UT_TMR_DELAY_INIT){
+        valve.command_Pulse_Delay.state = UT_TMR_DELAY_WAIT;
         hal_timer_a_InitValveDelay();
     }
 }
@@ -168,7 +165,7 @@ void valveControl_update ()
     switch(valve.state)
     {
     case VALVE_CLOSING_STATE:
-        if(UT_timer_delay(&valve.command_pulse_delay)){
+        if(UT_timer_delay(&valve.command_Pulse_Delay)){
             GPIO_setOutputLowOnPin(
                 GPIO_PORT_P7,
                 GPIO_PIN0
@@ -179,7 +176,7 @@ void valveControl_update ()
         }
         break;
      case VALVE_OPENING_STATE:
-         if(UT_timer_delay(&valve.command_pulse_delay)){
+         if(UT_timer_delay(&valve.command_Pulse_Delay)){
              GPIO_setOutputLowOnPin(
                  GPIO_PORT_P1,
                  GPIO_PIN1

@@ -17,8 +17,10 @@
 
 SPI_Communications_Module SPI_slave = {0};
 
+// Initial setup of Communications module
 void Communications_setup(void){
 
+    SPI_slave.communication_Status = COMMUNICATION_STATUS_INACTIVE;
     WDT_A_hold(WDT_A_BASE);
 
     /* 1. Configure pins for eUSCI_A2:
@@ -88,6 +90,7 @@ void Communications_setup(void){
         );
 }
 
+// Sends a frame via SPI, return false if data can't be send, or true if data was transmitted successfully
 bool Communications_send(SPI_Communications_Frame frame){
 
     // Just as safety measure, make sure frame length is less than buffer size:
@@ -129,38 +132,37 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port2_ISR (void)
 #error Compiler not supported!
 #endif
 {
-   GPIO_clearInterrupt(GPIO_PORT_P2,GPIO_PIN2);
-   switch(GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN2)){
-       case GPIO_INPUT_PIN_LOW:
-           SPI_slave.communication_Status = COMMUNICATION_STATUS_LISTENING;
-           EUSCI_A_SPI_clearInterrupt(EUSCI_A2_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
-           EUSCI_A_SPI_enableInterrupt(
-                                      EUSCI_A2_BASE,
-                                      EUSCI_A_SPI_RECEIVE_INTERRUPT
-                                      );
-           GPIO_selectInterruptEdge(
-                   GPIO_PORT_P2,
-                   GPIO_PIN2,
-                   GPIO_LOW_TO_HIGH_TRANSITION
-                   );
-           break;
-       case GPIO_INPUT_PIN_HIGH:
+    GPIO_clearInterrupt(GPIO_PORT_P2,GPIO_PIN2);
+       switch(GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN2)){
+           case GPIO_INPUT_PIN_LOW:
+               SPI_slave.communication_Status = COMMUNICATION_STATUS_LISTENING;
+               EUSCI_A_SPI_clearInterrupt(EUSCI_A2_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
+               EUSCI_A_SPI_enableInterrupt(
+                                          EUSCI_A2_BASE,
+                                          EUSCI_A_SPI_RECEIVE_INTERRUPT
+                                          );
+               GPIO_selectInterruptEdge(
+                       GPIO_PORT_P2,
+                       GPIO_PIN2,
+                       GPIO_LOW_TO_HIGH_TRANSITION
+                       );
+               break;
+           case GPIO_INPUT_PIN_HIGH:
 
-           SPI_slave.communication_Status = COMMUNICATION_STATUS_INACTIVE;
-           EUSCI_A_SPI_disableInterrupt(
-                   EUSCI_A2_BASE,
-                   EUSCI_A_SPI_RECEIVE_INTERRUPT
-                   );
-           GPIO_selectInterruptEdge(
-                   GPIO_PORT_P2,
-                   GPIO_PIN2,
-                   GPIO_HIGH_TO_LOW_TRANSITION
-                   );
-           break;
-   }
+               SPI_slave.communication_Status = COMMUNICATION_STATUS_INACTIVE;
+               EUSCI_A_SPI_disableInterrupt(
+                       EUSCI_A2_BASE,
+                       EUSCI_A_SPI_RECEIVE_INTERRUPT
+                       );
+               GPIO_selectInterruptEdge(
+                       GPIO_PORT_P2,
+                       GPIO_PIN2,
+                       GPIO_HIGH_TO_LOW_TRANSITION
+                       );
+               break;
+       }
+   __bic_SR_register_on_exit(CPUOFF); // wake up from LPM
 }
-
-uint8_t received_byte = 0;
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=USCI_A2_VECTOR
@@ -171,6 +173,12 @@ void __attribute__ ((interrupt(EUSCI_A2_VECTOR))) USCI_A2_ISR (void)
 #error Compiler not supported!
 #endif
 {
+    /* Sets Tx & Rx flags from SPI_slave module to indicate whether the code should
+     * process the next byte to send (Tx flag ON) or read the next byte (Rx ON) on
+     * Communications_update() function
+     */
+
+    // If transmit interrupt raised, set Tx_ready flag
     if (EUSCI_A_SPI_getInterruptStatus(
             EUSCI_A2_BASE,
             EUSCI_A_SPI_TRANSMIT_INTERRUPT) == EUSCI_A_SPI_TRANSMIT_INTERRUPT) {
@@ -179,6 +187,7 @@ void __attribute__ ((interrupt(EUSCI_A2_VECTOR))) USCI_A2_ISR (void)
         return;
     }
 
+    // If receive interrupt raised, set Rx_received flag
     if (EUSCI_A_SPI_getInterruptStatus(
                 EUSCI_A2_BASE,
                 EUSCI_A_SPI_RECEIVE_INTERRUPT) == EUSCI_A_SPI_RECEIVE_INTERRUPT) {
@@ -186,9 +195,11 @@ void __attribute__ ((interrupt(EUSCI_A2_VECTOR))) USCI_A2_ISR (void)
         SPI_slave.byte_Rx_received = true;
         return;
     }
+    __bic_SR_register_on_exit(CPUOFF); // wake up from LPM
 
 }
 
+// Returns whether the communications module is working
 bool Communications_isActive(){
     if (SPI_slave.communication_Status != COMMUNICATION_STATUS_INACTIVE) {
         return true;
@@ -197,7 +208,9 @@ bool Communications_isActive(){
     }
 }
 
+// Processes a given frame & sends the corresponding response via SPI
 void Communications_ProcessRequest(SPI_Communications_Frame request){
+
 
     SPI_Communications_Frame response;
     ValveState_t valve_state;
@@ -210,6 +223,7 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
 
     switch(request.frame_Type){
     case FRAME_REQUEST_STATUS:
+
         uint8_t status_body[29];
         status_body[0] = valveControl_getValveState();
         aux_float2bytes.float_value = flowMeter_getVolumeFlowRate();
@@ -303,6 +317,8 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
     return;
 }
 
+
+// Sets BUSY pin
 void Communications_setBusy(){
     GPIO_setOutputHighOnPin(
         GPIO_PORT_P2,
@@ -310,6 +326,7 @@ void Communications_setBusy(){
         );
 }
 
+// Clears BUSY pin
 void Communications_clearBusy(){
     GPIO_setOutputLowOnPin(
         GPIO_PORT_P2,
@@ -317,11 +334,12 @@ void Communications_clearBusy(){
         );
 }
 
+// main function of Communications module, must be called on every iteration
 void Communications_update(){
 
     if (SPI_slave.communication_Status == COMMUNICATION_STATUS_INACTIVE) {
-            return;
-        }
+        return;
+    }
 
     if (SPI_slave.byte_Rx_received){
         SPI_slave.byte_Rx_received = false;
@@ -411,8 +429,6 @@ void Communications_update(){
     return;
     }
 }
-
-uint8_t byte;
 
 
 /*  CRC8 implementation via lookup table. The returned value is set as the frame CRC byte

@@ -47,12 +47,3 @@ uint8_t UT_mod2div(uint8_t *dividend, uint8_t divisor, uint8_t pol_length){
     return remainder;
 }
 
-void UT_timer_setDelayDuration(){
-    __no_operation();
-}
-
-void LPM_Delay(uint16_t n_cycles)
-{
-    USS_generateLPMDelay(&gUssSWConfig,USS_low_power_mode_option_low_power_mode_3, n_cycles);
-}
-

@@ -28,12 +28,12 @@
 typedef struct
 {
     _iq16 totalizer;
-    uint16_t measurement_count;
+    uint16_t measurement_Count;
     _iq16 temperature;
     _iq16 pressure;
-    _iq16 last_volume_flow_rate;
-    _iq16 last_mass_flow_rate;
-    uint16_t measure_interval;
+    _iq16 last_Volume_Flow_Rate;
+    _iq16 last_Mass_Flow_Rate;
+    uint16_t measure_Time_Interval_Seconds;
 }flowMeter_Module;
 
 

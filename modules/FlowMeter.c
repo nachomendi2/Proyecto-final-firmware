@@ -39,12 +39,7 @@ uint16_t dcOffsetEstcount;
  * Any of these steps could produce an error, so it is important to handle these.
  */
 USS_message_code flowMeter_setup(){
-
     USS_message_code exit_status = USS_message_code_no_error;
-    flow_meter.totalizer = 0;
-    flow_meter.measurement_count = 0;
-    flow_meter.pressure = _IQ16(1.898);
-    flow_meter.temperature = _IQ16(15.F);
 
 #ifdef USS_APP_RESONATOR_CALIBRATE_ENABLE
     resCalibcount = 0;
@@ -135,11 +130,6 @@ _iq16 flowMeter_measureVolumeFlowRate(){
 
     // 1. Start ultrasonic capture: generate pulse for transceiver and capture the waveform on receiver:
 
-    /* PARA EVITAR QUE LA LIBRERIA ENTRE EN LPM AL MEDIR, IR A ussSwLibmeasurement.c LINEAS 456 POR AHI
-     * ahi esta definida la funcion "commonTimerGenerateLowPowerDelay" que genera el delay que pone en
-     * sleep el micro, si cambiamos donde dice "USS_low_power_mode_option_low_power_mode_3" por 0, el
-     * codigo se queda esperando sin entrar en lpm!
-     */
 
     exit_status = USS_startLowPowerUltrasonicCapture(&gUssSWConfig);
     if (exit_status != USS_message_code_no_error){
@@ -291,16 +281,15 @@ void flowMeter_update(){
 
     // first, get the volume flow rate:
     _iq16 flow_rate = flowMeter_measureVolumeFlowRate();
-    flow_meter.last_volume_flow_rate = flow_rate;
+    flow_meter.last_Volume_Flow_Rate = flow_rate;
 
     //convert to mass flow rate:
     flow_rate = flowMeter_calculateMassFlowRate(flow_rate);
-    flow_meter.last_mass_flow_rate = flow_rate;
+    flow_meter.last_Mass_Flow_Rate = flow_rate;
 
     //add flow measurement to totalizer
-    flow_meter.measurement_count++;
-    flow_meter.totalizer = flow_rate;
-    __no_operation();
+    flow_meter.measurement_Count++;
+    flow_meter.totalizer += _IQ16(10);//flow_rate;
 }
 
 inline float flowMeter_getTotalizer(){
@@ -308,22 +297,22 @@ inline float flowMeter_getTotalizer(){
 }
 
 inline float flowMeter_getAverageMassFlowRate(){
-    _iq16 iq_count = _IQ16(flow_meter.measurement_count);
+    _iq16 iq_count = _IQ16(flow_meter.measurement_Count);
     _iq16 avr_fixed = _IQ16mpy(flow_meter.totalizer,iq_count);
     return _IQ16toF(avr_fixed);
 }
 
 inline float flowMeter_getVolumeFlowRate(){
-    return _IQ16toF(flow_meter.last_volume_flow_rate);
+    return _IQ16toF(flow_meter.last_Volume_Flow_Rate);
 }
 
 inline float flowMeter_getMassFlowRate(){
-    return _IQ16toF(flow_meter.last_mass_flow_rate);
+    return _IQ16toF(flow_meter.last_Mass_Flow_Rate);
 }
 
 void flowMeter_setMeasurementTimeInterval(uint16_t interval){
     hal_timer_a_setWakeUptimerPeriod(interval*512);
-    flow_meter.measure_interval = interval;
+    flow_meter.measure_Time_Interval_Seconds = interval;
 }
 
 

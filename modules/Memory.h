@@ -8,8 +8,10 @@
 #ifndef MODULES_MEMORY_H_
 #define MODULES_MEMORY_H_
 
+#include <IQmathlib.h>
 
+bool Memory_loadBackup();
 
-
+bool Memory_backupData();
 
 #endif /* MODULES_MEMORY_H_ */

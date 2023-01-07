@@ -59,6 +59,7 @@ void __attribute__ ((interrupt(TIMER3_A1_VECTOR))) timerA3_ISR (void)
 
     Timer_A_clearTimerInterrupt(__MSP430_BASEADDRESS_TA3__);
     wakeup_timer.state = UT_TMR_DELAY_INIT;
+    __bic_SR_register_on_exit(CPUOFF); // wake up from LPM
 }
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
@@ -71,9 +72,10 @@ void __attribute__ ((interrupt(TIMER4_A1_VECTOR))) timerA4_ISR (void)
 #endif
 {
     Timer_A_clearTimerInterrupt(__MSP430_BASEADDRESS_TA4__);
-    valve.command_pulse_delay.state = UT_TMR_DELAY_INIT;
+    valve.command_Pulse_Delay.state = UT_TMR_DELAY_INIT;
     Timer_A_stop(__MSP430_BASEADDRESS_TA4__);
     Timer_A_disableInterrupt(__MSP430_BASEADDRESS_TA4__);
+    __bic_SR_register_on_exit(CPUOFF); // wake up from LPM
 }
 
 inline void hal_timer_a_setWakeUptimerPeriod(uint16_t time){

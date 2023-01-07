@@ -26,7 +26,7 @@ typedef enum
 typedef struct
 {
     ValveState_t state;
-    ut_tmrDelay_t command_pulse_delay;
+    ut_tmrDelay_t command_Pulse_Delay;
 }ValveControl_Module;
 
 ValveState_t valveControl_getValveState();
@@ -41,6 +41,6 @@ bool valveControl_open();
 
 void valveControl_toggle(uint8_t SelectedPin);
 
-void valveControl_setup(ValveState_t initial_state);
+void valveControl_setup();
 
 #endif /* MODULES_VALVECONTROL_H_ */

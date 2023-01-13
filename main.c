@@ -9,7 +9,10 @@
 #include <stdbool.h>
 #include "ValveControl.h"
 #include "Memory.h"
+#include <PressureSensor.h>
 
+
+//#define __AFE_EXT_3v3__ // remove this to use external AFE
 /*
  * main.c
  */
@@ -30,9 +33,10 @@ int main(void)
 	    }
 
 	hal_lcd_turnonLCD();
-	__enable_interrupt();
-	flowMeter_setup();
 	Communications_setup();
+	PressureSensor_setup();
+    __enable_interrupt();
+	//flowMeter_setup();
 	valveControl_setup();
 
 	// --------- main program loop ----------
@@ -43,13 +47,14 @@ int main(void)
 
 	        // enter LPM3:
 	        if (!Communications_isActive()){
-	            __low_power_mode_3();
+	            __low_power_mode_0();
 	            continue;
 	        }
 
 	    }else{
-	        flowMeter_update();
 	        valveControl_update();
+	        PressureSensor_update();
+	        //flowMeter_update();
 	        // displayOnLCD();
 	        Memory_backupData();
 

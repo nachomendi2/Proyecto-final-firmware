@@ -9,13 +9,16 @@
 #include "ValveControl.h"
 #include "nvs.h"
 #include "stdbool.h"
+#include "PressureSensor.h"
 
 extern ValveControl_Module valve;
 extern flowMeter_Module flow_meter;
+extern PressureSensor_Module pressure_sensor;
 
 // create NVS data handles for both modules
 nvs_data_handle nvsHandleFlowMeter;
 nvs_data_handle nvsHandleValve;
+nvs_data_handle nvsHandlePressureSensor;
 
 // Allocate memory in FRAM for flowMeter & ValveControl modules backups via NVS containers
 #if defined(__TI_COMPILER_VERSION__)
@@ -31,6 +34,13 @@ uint8_t nvsStorageValveModule[NVS_DATA_STORAGE_SIZE(sizeof(valve))] = {0};
 __persistent
 #endif
 uint8_t nvsStorageFlowMeterModule[NVS_DATA_STORAGE_SIZE(sizeof(flow_meter))] = {0};
+
+#if defined(__TI_COMPILER_VERSION__)
+#pragma PERSISTENT(nvsStoragePressureSensorModule)
+#elif defined(__IAR_SYSTEMS_ICC__)
+__persistent
+#endif
+uint8_t nvsStoragePressureSensorModule[NVS_DATA_STORAGE_SIZE(sizeof(flow_meter))] = {0};
 
 bool Memory_loadBackup(){
 
@@ -52,8 +62,6 @@ bool Memory_loadBackup(){
             // into the struct in this case, but for security reasons initialize then explictly:
             flow_meter.totalizer = 0;
             flow_meter.measurement_Count = 0;
-            flow_meter.pressure = _IQ16(1.898);
-            flow_meter.temperature = _IQ16(15.F);
             break;
         default:
             /*
@@ -78,18 +86,32 @@ bool Memory_loadBackup(){
             default: return_value = false;
             }
 
+    // Repeat with pressure sensor module
+    operation_status = nvs_data_restore(nvsHandlePressureSensor, &pressure_sensor);
+    switch (operation_status) {
+            case NVS_OK: break;
+            case NVS_EMPTY:
+                pressure_sensor.pressure = _IQ16(1.898);
+                pressure_sensor.temperature = _IQ16(15.F);
+                break;
+            default: return_value = false;
+            }
+
     return return_value;
 }
 
-nvs_status test;
 bool Memory_backupData(){
     uint16_t operation_status = nvs_data_commit(nvsHandleFlowMeter, &flow_meter);
-    test = operation_status;
     if (operation_status != NVS_OK){
         return false;
     }
 
     operation_status = nvs_data_commit(nvsHandleValve, &valve);
+    if (operation_status != NVS_OK){
+        return false;
+    }
+
+    operation_status = nvs_data_commit(nvsHandlePressureSensor, &pressure_sensor);
     if (operation_status != NVS_OK){
         return false;
     }

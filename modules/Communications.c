@@ -14,6 +14,7 @@
 #include "utils.h"
 #include <ValveControl.h>
 #include "flowMeter.h"
+#include "PressureSensor.h"
 
 SPI_Communications_Module SPI_slave = {0};
 
@@ -230,11 +231,11 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
         for (uint8_t i=1; i<5;i++){
             status_body[i] = aux_float2bytes.byte_array[i-1];
         }
-        aux_float2bytes.float_value = flowMeter_getPressure();
+        aux_float2bytes.float_value = PressureSensor_getPressure();
         for (uint8_t i=5; i<9;i++){
             status_body[i] = aux_float2bytes.byte_array[i-5];
         }
-        aux_float2bytes.float_value = flowMeter_getTemperature();
+        aux_float2bytes.float_value = PressureSensor_getTemperature();
         for (uint8_t i=9; i<13;i++){
             status_body[i] = aux_float2bytes.byte_array[i-9];
         }

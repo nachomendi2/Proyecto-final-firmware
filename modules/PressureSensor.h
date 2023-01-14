@@ -15,7 +15,7 @@
 
 #define PRESSURE_SENSOR_I2C_COMMAND_START_MEASUREMENT 0x0A
 #define PRESSURE_SENSOR_I2C_CMD_REGISTER 0x30
-#define PRESSURE_SENSOR_I2C_MEASUREMENT_COMPLETE 0x0A
+#define PRESSURE_SENSOR_I2C_MEASUREMENT_COMPLETE 0x08
 
 typedef enum{
     PRESSURE_SENSOR_STATUS_INACTIVE,
@@ -42,11 +42,15 @@ uint8_t PressureSensor_readRegister(uint8_t sensor_register);
 
 bool PressureSensor_writeRegister(uint8_t sensor_register, uint8_t write_data);
 
-void PressureSensor_waitForByteTransmissionComplete();
-
-void PressureSensor_waitForByteReceptionComplete();
-
 void PressureSensor_update();
+
+inline _iq16 PressureSensor_getTemperatureFixedPoint();
+
+inline _iq16 PressureSensor_getPressureFixedPoint();
+
+inline float PressureSensor_getTemperature();
+
+inline float PressureSensor_getPressure();
 
 
 #endif /* MODULES_PRESSURESENSOR_H_ */

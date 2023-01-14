@@ -36,7 +36,7 @@ int main(void)
 	Communications_setup();
 	PressureSensor_setup();
     __enable_interrupt();
-	//flowMeter_setup();
+	flowMeter_setup();
 	valveControl_setup();
 
 	// --------- main program loop ----------
@@ -54,10 +54,9 @@ int main(void)
 	    }else{
 	        valveControl_update();
 	        PressureSensor_update();
-	        //flowMeter_update();
+	        flowMeter_update();
 	        // displayOnLCD();
 	        Memory_backupData();
-
 	    }
     }
 }

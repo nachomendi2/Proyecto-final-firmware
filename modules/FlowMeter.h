@@ -29,8 +29,6 @@ typedef struct
 {
     _iq16 totalizer;
     uint16_t measurement_Count;
-    _iq16 temperature;
-    _iq16 pressure;
     _iq16 last_Volume_Flow_Rate;
     _iq16 last_Mass_Flow_Rate;
     uint16_t measure_Time_Interval_Seconds;
@@ -41,11 +39,8 @@ USS_message_code flowMeter_setup();
 
 _iq16 flowMeter_measureVolumeFlowRate();
 
-inline float flowMeter_getTemperature();
-
 inline _iq16 flowMeter_getDensity();
 
-inline float flowMeter_getPressure();
 
 _iq16 flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate);
 

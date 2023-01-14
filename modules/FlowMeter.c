@@ -15,6 +15,7 @@
 #include <IQmathlib.h>
 #include <stdbool.h>
 #include <hal_timer_a.h>
+#include "PressureSensor.h"
 
 /* ----- GLOBAL VARIABLES ----- */
 
@@ -243,14 +244,6 @@ _iq16 flowMeter_measureVolumeFlowRate(){
     return vol_flow_rate;//_IQ16abs( _IQdiv16( _IQdiv64( results.iq16VolumeFlowRate ) ) );
 }
 
-inline float flowMeter_getPressure(){
-    return _IQ16toF(flow_meter.pressure);
-}
-
-inline float flowMeter_getTemperature(){
-    return _IQ16toF(flow_meter.temperature); //expressed in C
-}
-
 inline _iq16 flowMeter_getDensity(){
     return LPG_REFERENCE_DENSITY;
 }
@@ -259,8 +252,8 @@ _iq16 flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
     // calculate mass flow rate, in order to save memory calculations will be done reusing 2 axiliary variables:
 
     // get temperature & pressure
-    _iq16 aux1 = flow_meter.temperature;
-    _iq16 aux2 = flow_meter.pressure;
+    _iq16 aux1 = PressureSensor_getTemperatureFixedPoint();
+    _iq16 aux2 = PressureSensor_getPressureFixedPoint();
 
     aux1 = _IQ16div(
             MASS_FLOW_RATE_CALCULATION_CONST_1,

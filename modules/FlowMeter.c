@@ -282,7 +282,7 @@ void flowMeter_update(){
 
     //add flow measurement to totalizer
     flow_meter.measurement_Count++;
-    flow_meter.totalizer += _IQ16(10);//flow_rate;
+    flow_meter.totalizer += flow_rate;
 }
 
 inline float flowMeter_getTotalizer(){

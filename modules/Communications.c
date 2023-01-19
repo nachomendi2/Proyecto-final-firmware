@@ -17,6 +17,7 @@
 #include "PressureSensor.h"
 
 SPI_Communications_Module SPI_slave = {0};
+uint16_t received_byte;
 
 // Initial setup of Communications module
 void Communications_setup(void){
@@ -49,17 +50,17 @@ void Communications_setup(void){
     //2. Configure GPIO for slave select:
     GPIO_setAsInputPin(
         GPIO_PORT_P2,
-        GPIO_PIN2
+        GPIO_PIN3
         );
 
     GPIO_enableInterrupt(
         GPIO_PORT_P2,
-        GPIO_PIN2
+        GPIO_PIN3
         );
 
     GPIO_selectInterruptEdge(
         GPIO_PORT_P2,
-        GPIO_PIN2,
+        GPIO_PIN3,
         GPIO_HIGH_TO_LOW_TRANSITION
         );
 
@@ -86,8 +87,8 @@ void Communications_setup(void){
 
     // Aditional: 6. configure busy pin (PORT 2.3)
     GPIO_setAsOutputPin(
-        GPIO_PORT_P2,
-        GPIO_PIN3
+        GPIO_PORT_P6,
+        GPIO_PIN7
         );
 }
 
@@ -133,8 +134,8 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port2_ISR (void)
 #error Compiler not supported!
 #endif
 {
-    GPIO_clearInterrupt(GPIO_PORT_P2,GPIO_PIN2);
-       switch(GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN2)){
+    GPIO_clearInterrupt(GPIO_PORT_P2,GPIO_PIN3);
+       switch(GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN3)){
            case GPIO_INPUT_PIN_LOW:
                SPI_slave.communication_Status = COMMUNICATION_STATUS_LISTENING;
                EUSCI_A_SPI_clearInterrupt(EUSCI_A2_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
@@ -144,26 +145,27 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port2_ISR (void)
                                           );
                GPIO_selectInterruptEdge(
                        GPIO_PORT_P2,
-                       GPIO_PIN2,
+                       GPIO_PIN3,
                        GPIO_LOW_TO_HIGH_TRANSITION
                        );
                break;
            case GPIO_INPUT_PIN_HIGH:
 
-               SPI_slave.communication_Status = COMMUNICATION_STATUS_INACTIVE;
+               //SPI_slave.communication_Status = COMMUNICATION_STATUS_INACTIVE;
                EUSCI_A_SPI_disableInterrupt(
                        EUSCI_A2_BASE,
                        EUSCI_A_SPI_RECEIVE_INTERRUPT
                        );
                GPIO_selectInterruptEdge(
                        GPIO_PORT_P2,
-                       GPIO_PIN2,
+                       GPIO_PIN3,
                        GPIO_HIGH_TO_LOW_TRANSITION
                        );
                break;
        }
    __bic_SR_register_on_exit(CPUOFF); // wake up from LPM
 }
+
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=USCI_A2_VECTOR
@@ -193,6 +195,7 @@ void __attribute__ ((interrupt(EUSCI_A2_VECTOR))) USCI_A2_ISR (void)
                 EUSCI_A2_BASE,
                 EUSCI_A_SPI_RECEIVE_INTERRUPT) == EUSCI_A_SPI_RECEIVE_INTERRUPT) {
         EUSCI_A_SPI_clearInterrupt(EUSCI_A2_BASE,EUSCI_A_SPI_RECEIVE_INTERRUPT);
+        received_byte = EUSCI_A_SPI_receiveData(EUSCI_A2_BASE);
         SPI_slave.byte_Rx_received = true;
         return;
     }
@@ -301,7 +304,7 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
         break;
     case FRAME_REQUEST_CONFIGURE:
 
-        response.frame_Type = 0; // type = 0 means No response
+        response.frame_Type = 0;
         union{
             uint8_t byte_array[2];
             uint16_t int_value;
@@ -322,16 +325,16 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
 // Sets BUSY pin
 void Communications_setBusy(){
     GPIO_setOutputHighOnPin(
-        GPIO_PORT_P2,
-        GPIO_PIN3
+        GPIO_PORT_P6,
+        GPIO_PIN7
         );
 }
 
 // Clears BUSY pin
 void Communications_clearBusy(){
     GPIO_setOutputLowOnPin(
-        GPIO_PORT_P2,
-        GPIO_PIN3
+        GPIO_PORT_P6,
+        GPIO_PIN7
         );
 }
 
@@ -344,9 +347,9 @@ void Communications_update(){
 
     if (SPI_slave.byte_Rx_received){
         SPI_slave.byte_Rx_received = false;
-        uint8_t received_byte = EUSCI_A_SPI_receiveData(EUSCI_A2_BASE);
 
         if(SPI_slave.communication_Status == COMMUNICATION_STATUS_LISTENING && received_byte == '*'){
+            __no_operation();
 
             SPI_slave.communication_Status = COMMUNICATION_STATUS_PROCESSING_REQUEST;
             SPI_slave.byte_Read_buffer[SPI_slave.byte_Read_Counter] = received_byte;
@@ -369,8 +372,9 @@ void Communications_update(){
 
                 // Verify frame CRC (check if remainder != 0)
                 if(Communications_CRC8(SPI_slave.byte_Read_buffer, SPI_slave.received_Frame_Length) != 0){
-                    //return;
+                    return;
                 }
+
                 SPI_slave.received_Frame_Length = 0;
 
                 SPI_Communications_Frame request;

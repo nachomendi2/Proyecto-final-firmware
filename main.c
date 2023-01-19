@@ -47,7 +47,7 @@ int main(void)
 
 	        // enter LPM3:
 	        if (!Communications_isActive()){
-	            __low_power_mode_0();
+	            __low_power_mode_3();
 	            continue;
 	        }
 

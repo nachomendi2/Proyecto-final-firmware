@@ -80,7 +80,7 @@ uint8_t PressureSensor_readRegister(uint8_t sensor_register)
 
 
     // Wait for SDA & SCL lines to update, meanwhile update Communications module:
-    uint16_t i = 30; //Set to smallest possible value that doesn't break I2C communication
+    uint16_t i = 100; //Set to smallest possible value that doesn't break I2C communication
     while (i--)
     {
         Communications_update();
@@ -144,10 +144,15 @@ void PressureSensor_update(){
 
     // 3. Read measurement results & update pressure & temperature values.
     uint8_t pressure_byte1 = PressureSensor_readRegister(0x06);
+    Communications_update();
     uint8_t pressure_byte2 = PressureSensor_readRegister(0x07);
+    Communications_update();
     uint8_t pressure_byte3 = PressureSensor_readRegister(0x08);
+    Communications_update();
     uint8_t temperature_byte1 = PressureSensor_readRegister(0x09);
+    Communications_update();
     uint8_t temperature_byte2 = PressureSensor_readRegister(0x0A);
+    Communications_update();
     // TODO: Process temp & pressure bytes & store them on `pressure_sensor` struct with according units!
     pressure_sensor.temperature = 0;
     pressure_sensor.temperature = temperature_byte1;
@@ -156,8 +161,6 @@ void PressureSensor_update(){
     pressure_sensor.pressure = pressure_byte1;
     pressure_sensor.pressure |= (uint16_t) pressure_byte2 << 8;
     pressure_sensor.pressure |= (uint16_t) pressure_byte3 << 16;
-    __no_operation();
-
 }
 
 inline _iq16 PressureSensor_getTemperatureFixedPoint(){

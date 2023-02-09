@@ -92,7 +92,7 @@ void Communications_setup(void){
     // The following parameters are set by default:
 
     params.msbFirst = EUSCI_A_SPI_MSB_FIRST;
-    params.clockPhase = EUSCI_A_SPI_PHASE_DATA_CHANGED_ONFIRST_CAPTURED_ON_NEXT;
+    params.clockPhase = EUSCI_A_SPI_PHASE_DATA_CAPTURED_ONFIRST_CHANGED_ON_NEXT;
     params.clockPolarity = EUSCI_A_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
     params.spiMode = EUSCI_A_SPI_3PIN;
 
@@ -275,6 +275,7 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
             status_body[i] = aux_float2bytes.byte_array[i-25];
         }
 
+        response.frame_Body = status_body;
         response.frame_Type = FRAME_RESPONSE_STATUS;
         response.frame_Length = 33;
         break;

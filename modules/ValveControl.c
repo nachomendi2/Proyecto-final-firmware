@@ -37,25 +37,25 @@ void valveControl_setup()
 
     //Seteo los puertos expuestos del GPIO del EVM, y sus pines. (OUTPUT). Comienzan todas en LOW.
     GPIO_setAsOutputPin(
-        GPIO_PORT_P1,
-        GPIO_PIN3
+        GPIO_PORT_P4,
+        GPIO_PIN2
         );
 
     GPIO_setAsOutputPin(
-        GPIO_PORT_P7,
-        GPIO_PIN0
+        GPIO_PORT_P4,
+        GPIO_PIN6
         );
 
 
     //Seteamos en LOW
     GPIO_setOutputLowOnPin(
-            GPIO_PORT_P1,
-            GPIO_PIN3
+            GPIO_PORT_P4,
+            GPIO_PIN2
             );
 
     GPIO_setOutputLowOnPin(
-            GPIO_PORT_P7,
-            GPIO_PIN0
+            GPIO_PORT_P4,
+            GPIO_PIN6
             );
 
 }
@@ -79,14 +79,14 @@ void valveControl_toggle(uint8_t SelectedPin)
     switch (SelectedPin) {
     case 1:
         GPIO_toggleOutputOnPin(
-            GPIO_PORT_P1,
-            GPIO_PIN1
+            GPIO_PORT_P4,
+            GPIO_PIN2
             );
         break;
     case 2:
         GPIO_toggleOutputOnPin(
-            GPIO_PORT_P7,
-            GPIO_PIN0
+            GPIO_PORT_P4,
+            GPIO_PIN6
             );
         break;
     default:
@@ -114,8 +114,8 @@ bool valveControl_open()
     //}
 
     GPIO_setOutputHighOnPin(
-        GPIO_PORT_P1,
-        GPIO_PIN1
+        GPIO_PORT_P4,
+        GPIO_PIN2
         );
     valve.state = VALVE_OPENING_STATE;
 
@@ -150,8 +150,8 @@ bool valveControl_close()
     //}
 
     GPIO_setOutputHighOnPin(
-        GPIO_PORT_P7,
-        GPIO_PIN0
+        GPIO_PORT_P4,
+        GPIO_PIN6
         );
     valve.state = VALVE_CLOSING_STATE;
 
@@ -167,8 +167,8 @@ void valveControl_update ()
     case VALVE_CLOSING_STATE:
         if(UT_timer_delay(&valve.command_Pulse_Delay)){
             GPIO_setOutputLowOnPin(
-                GPIO_PORT_P7,
-                GPIO_PIN0
+                GPIO_PORT_P4,
+                GPIO_PIN6
                 );
             Communications_clearBusy();
             valve.state = VALVE_CLOSED_STATE;
@@ -178,8 +178,8 @@ void valveControl_update ()
      case VALVE_OPENING_STATE:
          if(UT_timer_delay(&valve.command_Pulse_Delay)){
              GPIO_setOutputLowOnPin(
-                 GPIO_PORT_P1,
-                 GPIO_PIN1
+                 GPIO_PORT_P4,
+                 GPIO_PIN2
                  );
              Communications_clearBusy();
              valve.state = VALVE_OPEN_STATE;

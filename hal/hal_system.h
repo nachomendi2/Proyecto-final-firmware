@@ -103,7 +103,17 @@
     #define HAL_SYS_BUTTON_SEL_PORT     GPIO_PORT_PJ    /*! Port used for Down Button  */
     #define HAL_SYS_BUTTON_SEL_PIN      GPIO_PIN2       /*! Pin used for Down Button   */
 #else
-    #error "HAL System Definition missing for EVM configuration"
+/* Hardware definition of buttons and LEDs for EVM 2.0 */
+    #define HAL_SYS_LED0_PORT           GPIO_PORT_PJ    /*! Port used for LED0 */
+    #define HAL_SYS_LED0_PIN            GPIO_PIN3       /*! Pin used for LED0  */
+    #define HAL_SYS_LED1_PORT           GPIO_PORT_P1    /*! Port used for LED1 */
+    #define HAL_SYS_LED1_PIN            GPIO_PIN5       /*! Pin used for LED1  */
+    #define HAL_SYS_BUTTON_LEFT_PORT    GPIO_PORT_PJ    /*! Port used for Left Button  */
+    #define HAL_SYS_BUTTON_LEFT_PIN     GPIO_PIN0       /*! Pin used for Left Button   */
+    #define HAL_SYS_BUTTON_RIGHT_PORT   GPIO_PORT_PJ    /*! Port used for Up Button    */
+    #define HAL_SYS_BUTTON_RIGHT_PIN    GPIO_PIN1       /*! Pin used for Up Button     */
+    #define HAL_SYS_BUTTON_SEL_PORT     GPIO_PORT_PJ    /*! Port used for Down Button  */
+    #define HAL_SYS_BUTTON_SEL_PIN      GPIO_PIN2       /*! Pin used for Down Button   */
 #endif
 
 

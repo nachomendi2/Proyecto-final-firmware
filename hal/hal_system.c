@@ -444,7 +444,67 @@ static void hal_system_GPIOInit(void)
 	    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
 	            GPIO_PIN6 | GPIO_PIN7, GPIO_SECONDARY_MODULE_FUNCTION);
 #else
-    #error "HAL System Definition missing for EVM configuration"
+	    /* GPIO Configuration
+	         * All pins initialized as output low, except for:
+	         *  P1[4] IRQ (OPEN DRAIN)
+	         *  P1[6:7] P1.6: UCB0 I2C SDA & P1.7: UCB0 I2C SCL
+	         *  PJ[0:2] BUT_SEL, BUT_RIGHT, BUT_LEFT (input with internal pull-up)
+	         *  PJ[4:5] LFXT
+	         */
+        GPIO_setOutputLowOnPin(GPIO_PORT_P1,
+                               GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN5);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P2,
+                               GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P3,
+                               GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P4,
+                               GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P5,
+                               GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P6,
+                               GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P7,
+                               GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setOutputLowOnPin(GPIO_PORT_PJ,
+                               GPIO_PIN3|GPIO_PIN6|GPIO_PIN7);
+
+        GPIO_setAsOutputPin(GPIO_PORT_P1,
+                            GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN5);
+        GPIO_setAsOutputPin(GPIO_PORT_P2,
+                            GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setAsOutputPin(GPIO_PORT_P3,
+                            GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setAsOutputPin(GPIO_PORT_P4,
+                            GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setAsOutputPin(GPIO_PORT_P5,
+                            GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setAsOutputPin(GPIO_PORT_P6,
+                            GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setAsOutputPin(GPIO_PORT_P7,
+                            GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+        GPIO_setAsOutputPin(GPIO_PORT_PJ,
+                            GPIO_PIN3|GPIO_PIN6|GPIO_PIN7);
+
+        // Buttons as Input with internal pull-up
+        GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_PJ,
+                                             GPIO_PIN0|GPIO_PIN1|GPIO_PIN2);
+
+        /* P1.4: IRQ (OPEN DRAIN)                   */
+        GPIO_setAsInputPin(GPIO_PORT_P1, GPIO_PIN4);
+
+        /* Configure LFXT GPIO pins */
+        GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_PJ,
+                                                   GPIO_PIN4 + GPIO_PIN5,
+                                                   GPIO_PRIMARY_MODULE_FUNCTION);
+
+        // Enable monitoring of USSXT_BOUT via PJ.6 pin
+        GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_PJ,
+                                                   GPIO_PIN6,
+                                                   GPIO_TERNARY_MODULE_FUNCTION);
+
+        /* P1.6: UCB0 I2C SDA & P1.7: UCB0 I2C SCL  */
+        GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
+                GPIO_PIN6 | GPIO_PIN7, GPIO_SECONDARY_MODULE_FUNCTION);
 #endif
 
     // Disable the GPIO power-on default high-impedance mode

@@ -32,35 +32,51 @@ void Communications_setup(void){
      *  - Set PIN 2 as Input (MOSI)
      *  - Set PIN 3 as Output (MISO)
      */
-    GPIO_setAsOutputPin(GPIO_PORT_PJ, GPIO_PIN3);
-    GPIO_setAsInputPin(GPIO_PORT_PJ, GPIO_PIN0 + GPIO_PIN1 + GPIO_PIN2);
+    //GPIO_setAsOutputPin(GPIO_PORT_PJ, GPIO_PIN3);
+    GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN1); //PCB
+
+    //GPIO_setAsInputPin(GPIO_PORT_PJ, GPIO_PIN0 + GPIO_PIN1 + GPIO_PIN2);
+    GPIO_setAsInputPin(GPIO_PORT_P5, GPIO_PIN0 + GPIO_PIN2 + GPIO_PIN3); //PCB
+
+    //GPIO_setAsPeripheralModuleFunctionInputPin(
+    //    GPIO_PORT_PJ,
+    //    GPIO_PIN0 + GPIO_PIN1 + GPIO_PIN2,
+    //    GPIO_PRIMARY_MODULE_FUNCTION
+    //    );
 
     GPIO_setAsPeripheralModuleFunctionInputPin(
-        GPIO_PORT_PJ,
-        GPIO_PIN0 + GPIO_PIN1 + GPIO_PIN2,
+        GPIO_PORT_P5,
+        GPIO_PIN0 + GPIO_PIN2 + GPIO_PIN3,
         GPIO_PRIMARY_MODULE_FUNCTION
         );
+
+
+    //GPIO_setAsPeripheralModuleFunctionOutputPin(
+    //    GPIO_PORT_PJ,
+    //    GPIO_PIN3,
+    //    GPIO_PRIMARY_MODULE_FUNCTION
+//        );
 
     GPIO_setAsPeripheralModuleFunctionOutputPin(
-        GPIO_PORT_PJ,
-        GPIO_PIN3,
+        GPIO_PORT_P5,
+        GPIO_PIN1,
         GPIO_PRIMARY_MODULE_FUNCTION
         );
 
-    //2. Configure GPIO for slave select:
+    //2. Configure GPIO for slave select: EVM= P2.3, PCB= P5.4
     GPIO_setAsInputPin(
-        GPIO_PORT_P2,
-        GPIO_PIN3
+        GPIO_PORT_P5,
+        GPIO_PIN4
         );
 
     GPIO_enableInterrupt(
-        GPIO_PORT_P2,
-        GPIO_PIN3
+        GPIO_PORT_P5,
+        GPIO_PIN4
         );
 
     GPIO_selectInterruptEdge(
-        GPIO_PORT_P2,
-        GPIO_PIN3,
+        GPIO_PORT_P5,
+        GPIO_PIN4,
         GPIO_HIGH_TO_LOW_TRANSITION
         );
 
@@ -85,10 +101,10 @@ void Communications_setup(void){
     // 5. Start eUSCI_A2 module:
     EUSCI_A_SPI_enable(EUSCI_A2_BASE);
 
-    // Aditional: 6. configure busy pin (PORT 2.3)
+    // Aditional: 6. configure busy pin (EVM = P6.7, PCB = P5.5)
     GPIO_setAsOutputPin(
-        GPIO_PORT_P6,
-        GPIO_PIN7
+        GPIO_PORT_P5,
+        GPIO_PIN5
         );
 }
 
@@ -134,8 +150,8 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port2_ISR (void)
 #error Compiler not supported!
 #endif
 {
-    GPIO_clearInterrupt(GPIO_PORT_P2,GPIO_PIN3);
-       switch(GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN3)){
+    GPIO_clearInterrupt(GPIO_PORT_P5,GPIO_PIN4); //PCB
+       switch(GPIO_getInputPinValue(GPIO_PORT_P5, GPIO_PIN4)){ //PCB
            case GPIO_INPUT_PIN_LOW:
                SPI_slave.communication_Status = COMMUNICATION_STATUS_LISTENING;
                EUSCI_A_SPI_clearInterrupt(EUSCI_A2_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
@@ -143,9 +159,9 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port2_ISR (void)
                                           EUSCI_A2_BASE,
                                           EUSCI_A_SPI_RECEIVE_INTERRUPT
                                           );
-               GPIO_selectInterruptEdge(
-                       GPIO_PORT_P2,
-                       GPIO_PIN3,
+               GPIO_selectInterruptEdge( //PCB
+                       GPIO_PORT_P5,
+                       GPIO_PIN4,
                        GPIO_LOW_TO_HIGH_TRANSITION
                        );
                break;
@@ -156,9 +172,9 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port2_ISR (void)
                        EUSCI_A2_BASE,
                        EUSCI_A_SPI_RECEIVE_INTERRUPT
                        );
-               GPIO_selectInterruptEdge(
-                       GPIO_PORT_P2,
-                       GPIO_PIN3,
+               GPIO_selectInterruptEdge( //PCB
+                       GPIO_PORT_P5,
+                       GPIO_PIN4,
                        GPIO_HIGH_TO_LOW_TRANSITION
                        );
                break;
@@ -329,16 +345,16 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
 // Sets BUSY pin
 void Communications_setBusy(){
     GPIO_setOutputHighOnPin(
-        GPIO_PORT_P6,
-        GPIO_PIN7
+        GPIO_PORT_P5,
+        GPIO_PIN5
         );
 }
 
 // Clears BUSY pin
 void Communications_clearBusy(){
     GPIO_setOutputLowOnPin(
-        GPIO_PORT_P6,
-        GPIO_PIN7
+        GPIO_PORT_P5,
+        GPIO_PIN5
         );
 }
 

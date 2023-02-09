@@ -22,8 +22,9 @@ void PressureSensor_setup(){
     pressure_sensor.status = PRESSURE_SENSOR_STATUS_INACTIVE;
 
     // 1. Configure pins 6 & 7 of port 3 to use the eUSCI_B module instead of GPIO
+    // In PCB, pins 6 & 7 of port 1
     GPIO_setAsPeripheralModuleFunctionInputPin(
-        GPIO_PORT_P3,
+        GPIO_PORT_P1,
         GPIO_PIN6 + GPIO_PIN7,
         GPIO_PRIMARY_MODULE_FUNCTION
         );
@@ -36,23 +37,23 @@ void PressureSensor_setup(){
     param.dataRate = EUSCI_B_I2C_SET_DATA_RATE_100KBPS;
     param.byteCounterThreshold = 1;
     param.autoSTOPGeneration = EUSCI_B_I2C_SET_BYTECOUNT_THRESHOLD_FLAG;
-   EUSCI_B_I2C_initMaster(EUSCI_B1_BASE, &param);
+   EUSCI_B_I2C_initMaster(EUSCI_B0_BASE, &param);
 
    // 3. Set pressure sensor address (specified on datasheet)
-   EUSCI_B_I2C_setSlaveAddress(EUSCI_B1_BASE,
+   EUSCI_B_I2C_setSlaveAddress(EUSCI_B0_BASE,
            PRESSURE_SENSOR_I2C_SLAVE_ADDRESS
            );
 
    EUSCI_B_I2C_setMode(
-                   EUSCI_B1_BASE,
+                   EUSCI_B0_BASE,
                    EUSCI_B_I2C_TRANSMIT_MODE
                    );
 
    // 4. Start eUSCI_B1 module
-   EUSCI_B_I2C_enable(EUSCI_B1_BASE);
+   EUSCI_B_I2C_enable(EUSCI_B0_BASE);
 
 
-   EUSCI_B_I2C_clearInterrupt(EUSCI_B1_BASE,
+   EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
                    EUSCI_B_I2C_TRANSMIT_INTERRUPT0 +
                    EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
                    EUSCI_B_I2C_NAK_INTERRUPT
@@ -64,17 +65,17 @@ uint8_t PressureSensor_readRegister(uint8_t sensor_register)
 {
     // Transmit to sensor which register to read
     EUSCI_B_I2C_setMode(
-                EUSCI_B1_BASE,
+                EUSCI_B0_BASE,
                 EUSCI_B_I2C_TRANSMIT_MODE
                 );
 
-    EUSCI_B_I2C_masterSendSingleByte(EUSCI_B1_BASE, sensor_register);
-    EUSCI_B_I2C_clearInterrupt(EUSCI_B1_BASE,
+    EUSCI_B_I2C_masterSendSingleByte(EUSCI_B0_BASE, sensor_register);
+    EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
                     EUSCI_B_I2C_TRANSMIT_INTERRUPT0 +
                     EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
                     EUSCI_B_I2C_NAK_INTERRUPT
                   );
-    EUSCI_B_I2C_setMode(EUSCI_B1_BASE,
+    EUSCI_B_I2C_setMode(EUSCI_B0_BASE,
             EUSCI_B_I2C_RECEIVE_MODE
             );
 
@@ -92,8 +93,8 @@ uint8_t PressureSensor_readRegister(uint8_t sensor_register)
     //__delay_cycles(2000);
 
     // Read selected register & return result:
-    uint8_t response = EUSCI_B_I2C_masterReceiveSingleByte(EUSCI_B1_BASE);
-    EUSCI_B_I2C_clearInterrupt(EUSCI_B1_BASE,
+    uint8_t response = EUSCI_B_I2C_masterReceiveSingleByte(EUSCI_B0_BASE);
+    EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
                     EUSCI_B_I2C_TRANSMIT_INTERRUPT0 +
                     EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
                     EUSCI_B_I2C_NAK_INTERRUPT
@@ -104,18 +105,18 @@ uint8_t PressureSensor_readRegister(uint8_t sensor_register)
 bool PressureSensor_writeRegister(uint8_t sensor_register, uint8_t write_data)
 {
     EUSCI_B_I2C_setMode(
-                    EUSCI_B1_BASE,
+                    EUSCI_B0_BASE,
                     EUSCI_B_I2C_TRANSMIT_MODE
                     );
 
     // Transmit to sensor which register to write:
-    EUSCI_B_I2C_masterSendMultiByteStart(EUSCI_B1_BASE, sensor_register);
+    EUSCI_B_I2C_masterSendMultiByteStart(EUSCI_B0_BASE, sensor_register);
 
     // Transmit to sensor which value to write to selected register:
-    EUSCI_B_I2C_masterSendMultiByteFinish(EUSCI_B1_BASE, write_data);
+    EUSCI_B_I2C_masterSendMultiByteFinish(EUSCI_B0_BASE, write_data);
 
     // Clear Interrupt flags (flags trigger although interrupts are disabled)
-    EUSCI_B_I2C_clearInterrupt(EUSCI_B1_BASE,
+    EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
                     EUSCI_B_I2C_TRANSMIT_INTERRUPT0 +
                     EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
                     EUSCI_B_I2C_BYTE_COUNTER_INTERRUPT +

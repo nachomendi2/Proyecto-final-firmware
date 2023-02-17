@@ -12,7 +12,7 @@
 ValveControl_Module valve;
 
 // DEPRECATED:
-bool ValveReceiveOrder () // Por ahora los tres botones dan la misma orden
+bool ValveReceiveOrder ()
 {
     if (GPIO_getInputPinValue(GPIO_PORT_PJ, GPIO_PIN0))
     {
@@ -29,13 +29,13 @@ inline ValveState_t valveControl_getValveState(){
 
 void valveControl_setup()
 {
-    //initial state should be loaded from FRAM, if no state loaded (init state) assume it's open
+    // Initial state should be loaded from FRAM, if no state loaded (init state) assume it's open
     if (valve.state == VALVE_INIT_STATE){
         valve.state = VALVE_OPEN_STATE;
         valveControl_open();
     }
 
-    //Seteo los puertos expuestos del GPIO del EVM, y sus pines. (OUTPUT). Comienzan todas en LOW.
+    // Configure GPIO for controlling the valve (one pin for opening the valve and one for closing it)
     GPIO_setAsOutputPin(
         GPIO_PORT_P1,
         GPIO_PIN3
@@ -46,8 +46,7 @@ void valveControl_setup()
         GPIO_PIN0
         );
 
-
-    //Seteamos en LOW
+    // By default, set GPIO in LOW
     GPIO_setOutputLowOnPin(
             GPIO_PORT_P1,
             GPIO_PIN3
@@ -109,6 +108,8 @@ bool valveControl_open()
      7: TxPwr   -> P1.0
      8: RxSel2  -> P3.7
     */
+
+    // Only try to open the valve if it's closed (commented for debugging)
     //if (valve.state != VALVE_CLOSED_STATE){
     //    return false;
     //}

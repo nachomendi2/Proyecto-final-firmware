@@ -1,6 +1,6 @@
 #include <msp430.h> 
 #include <FlowMeter.h>
-#include <hal_lcd.h> //FOR DEBUGGING
+#include <hal_lcd.h> // Can be removed if not using the LCD
 #include <stdio.h>
 #include <IQMathlib.h>
 #include "utils.h"
@@ -11,11 +11,12 @@
 #include "Memory.h"
 #include <PressureSensor.h>
 
+/*! Enables/disables the LCD */
+// #define ENABLE_LCD
 
-//#define __AFE_EXT_3v3__ // remove this to use external AFE
-/*
- * main.c
- */
+/* Enables/disables external AFE */
+//#define __AFE_EXT_3v3__
+
 extern ut_tmrDelay_t wakeup_timer;
 
 int main(void)
@@ -29,10 +30,14 @@ int main(void)
 	reset_source = hal_system_GetResetSource();
 	    if(reset_source != 0x00)
 	    {
+	        // If the source of the reset was due to a system failure, it should be handled here
+	        // Currently, this section is unused
 	        __no_operation();
 	    }
 
+#ifdef ENABLE_LCD
 	hal_lcd_turnonLCD();
+#endif
 	Communications_setup();
 	PressureSensor_setup();
     __enable_interrupt();
@@ -45,7 +50,7 @@ int main(void)
 
 	    if(!UT_timer_delay(&wakeup_timer)){
 
-	        // enter LPM3:
+	        // enter LPM3 (only if no SPI communication is active):
 	        if (!Communications_isActive()){
 	            __low_power_mode_3();
 	            continue;
@@ -55,12 +60,15 @@ int main(void)
 	        valveControl_update();
 	        PressureSensor_update();
 	        flowMeter_update();
-	        // displayOnLCD();
+#ifdef ENABLE_LCD
+	        displayOnLCD();
+#endif
 	        Memory_backupData();
 	    }
     }
 }
 
+#ifdef ENABLE_LCD
 // Only for debug, can be removed on release:
 void displayOnLCD(){
     char lcd_output[6] = "";
@@ -95,5 +103,5 @@ void displayOnLCD(){
         }
 
 }
-
+#endif
 

@@ -95,8 +95,6 @@
 /*! Enables/disables the internal charge pump */
 //#define LCD_USE_CHARGEPUMP
 
-/*! Enables/disables the LCD */
-#define ENABLE_LCD
 /*! Maximum number of digits in LCD */
 #define HAL_LCD_DIGIT_MAX  6
 /*! Size of LCD Memory map */

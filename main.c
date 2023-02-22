@@ -30,13 +30,11 @@ int main(void)
 	    {
 	        __no_operation();
 	    }
-
+	__enable_interrupt();
 	Communications_setup();
-	PressureSensor_setup();
-    __enable_interrupt();
+	//PressureSensor_setup();
 	flowMeter_setup();
 	valveControl_setup();
-
 
 	// --------- main program loop ----------
 	while(1){

@@ -47,7 +47,7 @@ void Communications_setup(void){
     GPIO_setAsPeripheralModuleFunctionInputPin(
         GPIO_PORT_P5,
         GPIO_PIN0 + GPIO_PIN2 + GPIO_PIN3,
-        GPIO_PRIMARY_MODULE_FUNCTION
+        GPIO_SECONDARY_MODULE_FUNCTION
         );
 
 
@@ -60,7 +60,7 @@ void Communications_setup(void){
     GPIO_setAsPeripheralModuleFunctionOutputPin(
         GPIO_PORT_P5,
         GPIO_PIN1,
-        GPIO_PRIMARY_MODULE_FUNCTION
+        GPIO_SECONDARY_MODULE_FUNCTION
         );
 
     //2. Configure GPIO for slave select: EVM= P2.3, PCB= P5.4
@@ -142,10 +142,10 @@ bool Communications_send(SPI_Communications_Frame frame){
 
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector = PORT2_VECTOR
-__interrupt void Port2_ISR (void)
+#pragma vector = PORT5_VECTOR
+__interrupt void Port5_ISR (void)
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(PORT2_VECTOR))) Port2_ISR (void)
+void __attribute__ ((interrupt(PORT5_VECTOR))) Port5_ISR (void)
 #else
 #error Compiler not supported!
 #endif

@@ -118,10 +118,10 @@ void hal_system_Init(void)
 #ifdef ENABLE_ADC
     hal_adc_init();
 #endif
-#ifdef ENABLE_LCD
-    hal_lcd_Init();
-    hal_lcd_turnoffLCD();
-#endif
+//#ifdef ENABLE_LCD
+//    hal_lcd_Init();
+//    hal_lcd_turnoffLCD();
+//#endif
     hal_system_LEDOff(HAL_SYS_LED_0);	/* Clear LED1 and LED2 if there are no errors	*/
     hal_system_LEDOff(HAL_SYS_LED_1);
 }

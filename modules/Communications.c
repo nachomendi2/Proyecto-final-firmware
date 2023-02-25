@@ -248,31 +248,31 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
         status_body[0] = valveControl_getValveState();
         aux_float2bytes.float_value = flowMeter_getVolumeFlowRate();
         for (uint8_t i=1; i<5;i++){
-            status_body[i] = aux_float2bytes.byte_array[i-1];
+            status_body[i] = aux_float2bytes.byte_array[4-i];
         }
         aux_float2bytes.float_value = PressureSensor_getPressure();
         for (uint8_t i=5; i<9;i++){
-            status_body[i] = aux_float2bytes.byte_array[i-5];
+            status_body[i] = aux_float2bytes.byte_array[8-i];
         }
         aux_float2bytes.float_value = PressureSensor_getTemperature();
         for (uint8_t i=9; i<13;i++){
-            status_body[i] = aux_float2bytes.byte_array[i-9];
+            status_body[i] = aux_float2bytes.byte_array[12-i];
         }
         aux_float2bytes.float_value = flowMeter_getMassFlowRate();
         for (uint8_t i=13; i<17;i++){
-            status_body[i] = aux_float2bytes.byte_array[i-13];
+            status_body[i] = aux_float2bytes.byte_array[16-i];
         }
         // TODO: measure battery
         for (uint8_t i=17; i<21;i++){
-            status_body[i] = 30;
+            status_body[i] = 0xAAAAAAAA;
         }
         aux_float2bytes.float_value = flowMeter_getTotalizer();
         for (uint8_t i=21; i<25;i++){
-            status_body[i] = aux_float2bytes.byte_array[i-21];
+            status_body[i] = aux_float2bytes.byte_array[24-i];
         }
         aux_float2bytes.float_value = flowMeter_getAverageMassFlowRate();
         for (uint8_t i=25; i<29;i++){
-            status_body[i] = aux_float2bytes.byte_array[i-25];
+            status_body[i] = aux_float2bytes.byte_array[28-1];
         }
 
         response.frame_Body = status_body;

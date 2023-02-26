@@ -5,8 +5,8 @@
 // Release Date: __LIB_RELEASE_DATE__
 //
 //*****************************************************************************
+#include <USS_userConfig.h>
 #include "ussSwLib.h"
-#include "USS_Config/USS_userConfig.h"
 
 int8_t USS_findMeterConstantRange(USS_Algorithms_Flow_Meter_Constant arr[],
                                      int8_t l, int8_t r, int32_t x)

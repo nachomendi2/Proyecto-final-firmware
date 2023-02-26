@@ -5,8 +5,8 @@
 // Release Date: __LIB_RELEASE_DATE__
 //
 //*****************************************************************************
+#include <USS_userConfig.h>
 #include "ussSwLib.h"
-#include "USS_Config/USS_userConfig.h"
 
 USS_message_code USS_calculateVolumeFlowRate(USS_SW_Library_configuration *config,
                                                 USS_Algorithms_Results_fixed_point *results)

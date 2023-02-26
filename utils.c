@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include "ussSwLib.h"
 #include <msp430.h>
-#include "USS_userConfig.h"
+#include <USS_userConfig.h>
 
 #define ACLK_FREQUENCY 32768 //clock frequency, used to calibrate delay.
 

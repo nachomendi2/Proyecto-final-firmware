@@ -13,7 +13,7 @@
 #include "Communications.h"
 #include <IQmathlib.h>
 
-PressureSensor_Module pressure_sensor;
+PressureSensor_Module pressure_sensor = {NULL,NULL,NULL,NULL};
 
 void PressureSensor_setup(){
 
@@ -21,12 +21,21 @@ void PressureSensor_setup(){
 
     pressure_sensor.status = PRESSURE_SENSOR_STATUS_INACTIVE;
 
-    // 1. Configure pins 6 & 7 of port 3 to use the eUSCI_B module instead of GPIO
-    // In PCB, pins 6 & 7 of port 1
+    GPIO_setAsOutputPin(
+        GPIO_PORT_P1,
+        GPIO_PIN0
+        );
+
+    GPIO_setOutputHighOnPin(
+        GPIO_PORT_P1,
+        GPIO_PIN0
+        );
+
+    // 1. Configure pins 6 & 7 of port 1 to use the eUSCI_B module instead of GPIO
     GPIO_setAsPeripheralModuleFunctionInputPin(
         GPIO_PORT_P1,
         GPIO_PIN6 + GPIO_PIN7,
-        GPIO_PRIMARY_MODULE_FUNCTION
+        GPIO_TERNARY_MODULE_FUNCTION
         );
     PMM_unlockLPM5();
 
@@ -37,7 +46,7 @@ void PressureSensor_setup(){
     param.dataRate = EUSCI_B_I2C_SET_DATA_RATE_100KBPS;
     param.byteCounterThreshold = 1;
     param.autoSTOPGeneration = EUSCI_B_I2C_SET_BYTECOUNT_THRESHOLD_FLAG;
-   EUSCI_B_I2C_initMaster(EUSCI_B0_BASE, &param);
+    EUSCI_B_I2C_initMaster(EUSCI_B0_BASE, &param);
 
    // 3. Set pressure sensor address (specified on datasheet)
    EUSCI_B_I2C_setSlaveAddress(EUSCI_B0_BASE,
@@ -93,6 +102,7 @@ uint8_t PressureSensor_readRegister(uint8_t sensor_register)
     //__delay_cycles(2000);
 
     // Read selected register & return result:
+
     uint8_t response = EUSCI_B_I2C_masterReceiveSingleByte(EUSCI_B0_BASE);
     EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
                     EUSCI_B_I2C_TRANSMIT_INTERRUPT0 +
@@ -144,24 +154,50 @@ void PressureSensor_update(){
     }
 
     // 3. Read measurement results & update pressure & temperature values.
-    uint8_t pressure_byte1 = PressureSensor_readRegister(0x06);
-    Communications_update();
-    uint8_t pressure_byte2 = PressureSensor_readRegister(0x07);
-    Communications_update();
-    uint8_t pressure_byte3 = PressureSensor_readRegister(0x08);
-    Communications_update();
-    uint8_t temperature_byte1 = PressureSensor_readRegister(0x09);
-    Communications_update();
-    uint8_t temperature_byte2 = PressureSensor_readRegister(0x0A);
-    Communications_update();
+    uint32_t pressure_byte1 = PressureSensor_readRegister(0x06);
+    //Communications_update();
+    uint32_t pressure_byte2 = PressureSensor_readRegister(0x07);
+    //Communications_update();
+    uint32_t pressure_byte3 = PressureSensor_readRegister(0x08);
+    //Communications_update();
+    uint16_t temperature_byte1 = PressureSensor_readRegister(0x09);
+    //Communications_update();
+    uint16_t temperature_byte2 = PressureSensor_readRegister(0x0A);
+    //Communications_update();
     // TODO: Process temp & pressure bytes & store them on `pressure_sensor` struct with according units!
-    pressure_sensor.temperature = 0;
-    pressure_sensor.temperature = temperature_byte1;
-    pressure_sensor.temperature |= (uint16_t) temperature_byte2 << 8;
-    pressure_sensor.pressure = 0;
-    pressure_sensor.pressure = pressure_byte1;
-    pressure_sensor.pressure |= (uint16_t) pressure_byte2 << 8;
-    pressure_sensor.pressure |= (uint16_t) pressure_byte3 << 16;
+    uint32_t Pressure;
+    uint32_t Temperature;
+    uint8_t NegativePressure = 0;
+    uint8_t NegativeTemperature = 0;
+    NegativePressure = (0b100000000|pressure_byte1); //Check if negative pressure
+    NegativeTemperature = (0b10000000 | temperature_byte1);
+
+    __no_operation();
+    Temperature = temperature_byte2;
+    Temperature |=temperature_byte1<<8;
+
+    if (NegativeTemperature) {
+        Temperature = _IQdiv16(_IQdiv16((Temperature-2^16)));
+    } else {
+        Temperature = _IQdiv16(_IQdiv16(Temperature));
+    }
+    pressure_sensor.temperature = Temperature;
+
+
+    Pressure = pressure_byte1 << 16;
+    Pressure |= pressure_byte2 << 8;
+    Pressure |= pressure_byte3;
+
+    if (NegativePressure) {
+        Pressure = _IQdiv4(_IQdiv32(_IQdiv32((Pressure-2^24))));
+
+    } else {
+        Pressure = _IQdiv4(_IQdiv32(_IQdiv32(Pressure)));
+    }
+
+    pressure_sensor.pressure = Pressure; //In Pa -- 1 Pa = 0.01 mbar
+
+    __no_operation();
 }
 
 inline _iq16 PressureSensor_getTemperatureFixedPoint(){
@@ -172,10 +208,10 @@ inline _iq16 PressureSensor_getPressureFixedPoint(){
     return pressure_sensor.pressure;
 }
 
-inline float PressureSensor_getTemperature(){
-    return _IQ16toF(pressure_sensor.temperature);
+inline uint32_t PressureSensor_getTemperature(){
+    return _IQ16int (pressure_sensor.temperature);
 }
 
-inline float PressureSensor_getPressure(){
-    return _IQ16toF(pressure_sensor.pressure);
+inline uint32_t PressureSensor_getPressure(){
+    return _IQ16int (pressure_sensor.pressure);
 }

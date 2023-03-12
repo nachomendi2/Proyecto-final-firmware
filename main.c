@@ -32,7 +32,7 @@ int main(void)
 	    }
 	__enable_interrupt();
 	Communications_setup();
-	//PressureSensor_setup();
+	PressureSensor_setup();
 	flowMeter_setup();
 	valveControl_setup();
 
@@ -49,7 +49,7 @@ int main(void)
 
 	    }else{
 	        valveControl_update();
-	        // PressureSensor_update();
+	        PressureSensor_update();
 	        flowMeter_update();
 	        Memory_backupData();
 	    }

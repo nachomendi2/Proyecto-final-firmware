@@ -48,9 +48,9 @@ inline _iq16 PressureSensor_getTemperatureFixedPoint();
 
 inline _iq16 PressureSensor_getPressureFixedPoint();
 
-inline float PressureSensor_getTemperature();
+inline uint32_t PressureSensor_getTemperature();
 
-inline float PressureSensor_getPressure();
+inline uint32_t PressureSensor_getPressure();
 
 
 #endif /* MODULES_PRESSURESENSOR_H_ */

@@ -21,22 +21,11 @@ void PressureSensor_setup(){
 
     pressure_sensor.status = PRESSURE_SENSOR_STATUS_INACTIVE;
 
-    GPIO_setAsOutputPin(
-        GPIO_PORT_P1,
-        GPIO_PIN0
-        );
-
     GPIO_setOutputHighOnPin(
         GPIO_PORT_P1,
         GPIO_PIN0
         );
 
-    // 1. Configure pins 6 & 7 of port 1 to use the eUSCI_B module instead of GPIO
-    GPIO_setAsPeripheralModuleFunctionInputPin(
-        GPIO_PORT_P1,
-        GPIO_PIN6 + GPIO_PIN7,
-        GPIO_TERNARY_MODULE_FUNCTION
-        );
     PMM_unlockLPM5();
 
     // 2. Init eUSCI_B module configuration
@@ -137,6 +126,13 @@ bool PressureSensor_writeRegister(uint8_t sensor_register, uint8_t write_data)
 
 void PressureSensor_update(){
 
+    /* Turn ON pressure sensor:
+    GPIO_setOutputHighOnPin(
+        GPIO_PORT_P1,
+        GPIO_PIN0
+        );
+    __delay_cycles(5000);
+    */
     // 1. Send 'start measurement' order to pressure sensor:
     PressureSensor_writeRegister(
             PRESSURE_SENSOR_I2C_CMD_REGISTER,
@@ -164,13 +160,25 @@ void PressureSensor_update(){
     //Communications_update();
     uint16_t temperature_byte2 = PressureSensor_readRegister(0x0A);
     //Communications_update();
+
+    // Turn OFF pressure sensor:
+    /*GPIO_setOutputLowOnPin(
+        GPIO_PORT_P1,
+        GPIO_PIN0
+        );
+    */
     // TODO: Process temp & pressure bytes & store them on `pressure_sensor` struct with according units!
     uint32_t Pressure;
     uint32_t Temperature;
+    uint32_t K = 64;
+    uint32_t pressure_adc;
+
+    float press;
+    _iq16 temp;
     uint8_t NegativePressure = 0;
     uint8_t NegativeTemperature = 0;
     NegativePressure = (0b100000000|pressure_byte1); //Check if negative pressure
-    NegativeTemperature = (0b10000000 | temperature_byte1);
+    NegativeTemperature = (0b10000000|temperature_byte1);
 
     __no_operation();
     Temperature = temperature_byte2;
@@ -188,15 +196,19 @@ void PressureSensor_update(){
     Pressure |= pressure_byte2 << 8;
     Pressure |= pressure_byte3;
 
+    pressure_adc = pressure_byte1 * 65536 + pressure_byte2 * 256 + pressure_byte3;
+
     if (NegativePressure) {
-        Pressure = _IQdiv4(_IQdiv32(_IQdiv32((Pressure-2^24))));
+        Pressure = _IQdiv4(_IQdiv32(_IQdiv32((Pressure-2^24)/K)));
+        //press = (pressure_adc - 2^24) / K;
 
     } else {
-        Pressure = _IQdiv4(_IQdiv32(_IQdiv32(Pressure)));
+        Pressure = _IQdiv4(_IQdiv32(_IQdiv32(Pressure/K)));
+        //press = pressure_adc / K;
     }
 
     pressure_sensor.pressure = Pressure; //In Pa -- 1 Pa = 0.01 mbar
-
+    //pressure_sensor.pressure = press;
     __no_operation();
 }
 

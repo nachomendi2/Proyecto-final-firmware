@@ -504,7 +504,7 @@ static void hal_system_GPIOInit(void)
 
         /* P1.6: UCB0 I2C SDA & P1.7: UCB0 I2C SCL  */
         GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
-                GPIO_PIN6 | GPIO_PIN7, GPIO_SECONDARY_MODULE_FUNCTION);
+                GPIO_PIN6 | GPIO_PIN7, GPIO_TERNARY_MODULE_FUNCTION);
 #endif
 
     // Disable the GPIO power-on default high-impedance mode

@@ -32,30 +32,17 @@ void Communications_setup(void){
      *  - Set PIN 2 as Input (MOSI)
      *  - Set PIN 3 as Output (MISO)
      */
-    //GPIO_setAsOutputPin(GPIO_PORT_PJ, GPIO_PIN3);
-    GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN1); //PCB
 
-    //GPIO_setAsInputPin(GPIO_PORT_PJ, GPIO_PIN0 + GPIO_PIN1 + GPIO_PIN2);
-    GPIO_setAsInputPin(GPIO_PORT_P5, GPIO_PIN0 + GPIO_PIN2 + GPIO_PIN3); //PCB
+    GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN1);
 
-    //GPIO_setAsPeripheralModuleFunctionInputPin(
-    //    GPIO_PORT_PJ,
-    //    GPIO_PIN0 + GPIO_PIN1 + GPIO_PIN2,
-    //    GPIO_PRIMARY_MODULE_FUNCTION
-    //    );
+    GPIO_setAsInputPin(GPIO_PORT_P5, GPIO_PIN0 + GPIO_PIN2 + GPIO_PIN3);
+
 
     GPIO_setAsPeripheralModuleFunctionInputPin(
         GPIO_PORT_P5,
         GPIO_PIN0 + GPIO_PIN2 + GPIO_PIN3,
         GPIO_SECONDARY_MODULE_FUNCTION
         );
-
-
-    //GPIO_setAsPeripheralModuleFunctionOutputPin(
-    //    GPIO_PORT_PJ,
-    //    GPIO_PIN3,
-    //    GPIO_PRIMARY_MODULE_FUNCTION
-//        );
 
     GPIO_setAsPeripheralModuleFunctionOutputPin(
         GPIO_PORT_P5,

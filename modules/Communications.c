@@ -253,13 +253,14 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
         for (uint8_t i=17; i<21;i++){
             status_body[i] = 0xAAAAAAAA;
         }
+        aux_float2bytes.float_value = flowMeter_getTotalizer_test();
         aux_float2bytes.float_value = flowMeter_getTotalizer();
         for (uint8_t i=21; i<25;i++){
             status_body[i] = aux_float2bytes.byte_array[24-i];
         }
         aux_float2bytes.float_value = flowMeter_getAverageMassFlowRate();
         for (uint8_t i=25; i<29;i++){
-            status_body[i] = aux_float2bytes.byte_array[28-1];
+            status_body[i] = aux_float2bytes.byte_array[28-i];
         }
 
         response.frame_Body = status_body;

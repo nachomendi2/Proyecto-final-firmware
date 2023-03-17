@@ -27,7 +27,8 @@
 
 typedef struct
 {
-    _iq16 totalizer;
+    float totalizer;
+    //_iq16 totalizer;
     uint16_t measurement_Count;
     _iq16 last_Volume_Flow_Rate;
     _iq16 last_Mass_Flow_Rate;

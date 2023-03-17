@@ -31,6 +31,8 @@ uint16_t agcCalibcount;
 #ifdef USS_APP_DC_OFFSET_CANCELLATION_ENABLE
 uint16_t dcOffsetEstcount;
 #endif
+#define FIXED_POINT_BITS    16
+#define SCALING_FACTOR      (1 << FIXED_POINT_BITS)
 
 /* Based on flowcharts from USSlib user guide ("Code examples" section, figures 6-7)
  * Library initialization is done in three steps:
@@ -252,7 +254,7 @@ _iq16 flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
     // calculate mass flow rate, in order to save memory calculations will be done reusing 2 axiliary variables:
 
     // get temperature & pressure
-    _iq16 aux1 = PressureSensor_getTemperatureFixedPoint();
+    /*_iq16 aux1 = PressureSensor_getTemperatureFixedPoint();
     _iq16 aux2 = PressureSensor_getPressureFixedPoint();
 
     aux1 = _IQ16div(
@@ -265,10 +267,12 @@ _iq16 flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
     aux1 = _IQ16mpy(aux1,aux2);
     aux1 = _IQ16mpy(aux1, vol_flow_rate);
 
-    return _IQ16mpy(aux1, flowMeter_getDensity());
+    return _IQ16mpy(aux1, flowMeter_getDensity());*/
+    return vol_flow_rate;
 }
 
 void flowMeter_update(){
+
     // main loop of the flow meter module
     // Measures mass flow rate, updates totalizer & handles overflows (WIP)
 
@@ -277,22 +281,35 @@ void flowMeter_update(){
     flow_meter.last_Volume_Flow_Rate = flow_rate;
 
     //convert to mass flow rate:
-    flow_rate = flowMeter_calculateMassFlowRate(flow_rate);
-    flow_meter.last_Mass_Flow_Rate = flow_rate;
+    _iq16 mass_flow_rate = flowMeter_calculateMassFlowRate(flow_rate);
+    flow_meter.last_Mass_Flow_Rate = mass_flow_rate;
+    float float_mass_flow_rate_per_hour = _IQ16toF(mass_flow_rate);// / SCALING_FACTOR;   //TEMPORAL
+    float float_mass_flow_rate = float_mass_flow_rate_per_hour / 3600; //TEMPORAL
 
     //add flow measurement to totalizer
     flow_meter.measurement_Count++;
-    flow_meter.totalizer += flow_rate;
+    //flow_meter.totalizer += mass_flow_rate;
+    flow_meter.totalizer += float_mass_flow_rate;
+    //flow_meter.totalizer += _IQ16div(mass_flow_rate,3600);
 }
 
 inline float flowMeter_getTotalizer(){
+    //return _IQ16toF(flow_meter.totalizer);
+    return flow_meter.totalizer;
+}
+
+inline float flowMeter_getTotalizer_test(){
     return _IQ16toF(flow_meter.totalizer);
+    //return flow_meter.totalizer;
 }
 
 inline float flowMeter_getAverageMassFlowRate(){
-    _iq16 iq_count = _IQ16(flow_meter.measurement_Count);
-    _iq16 avr_fixed = _IQ16mpy(flow_meter.totalizer,iq_count);
-    return _IQ16toF(avr_fixed);
+    //_iq16 iq_count = _IQ16(flow_meter.measurement_Count);
+    //_iq16 avr_fixed = _IQ16mpy(flow_meter.totalizer,iq_count);
+    //_iq16 avr_fixed = _IQ16div(flow_meter.totalizer,iq_count);
+    float avr_fixed = (3600 * flow_meter.totalizer) / flow_meter.measurement_Count;
+    return avr_fixed;
+    //return _IQ16toF(avr_fixed);
 }
 
 inline float flowMeter_getVolumeFlowRate(){

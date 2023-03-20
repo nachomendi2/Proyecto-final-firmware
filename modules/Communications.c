@@ -253,7 +253,6 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
         for (uint8_t i=17; i<21;i++){
             status_body[i] = 0xAAAAAAAA;
         }
-        aux_float2bytes.float_value = flowMeter_getTotalizer_test();
         aux_float2bytes.float_value = flowMeter_getTotalizer();
         for (uint8_t i=21; i<25;i++){
             status_body[i] = aux_float2bytes.byte_array[24-i];
@@ -289,23 +288,25 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
     case FRAME_REQUEST_OPEN_VALVE:
 
         // Set busy pin & set frame body to the current state of the valve:
+        valveControl_open();
         valve_state = valveControl_getValveState();
         Communications_setBusy();
         response.frame_Body = &valve_state;
         response.frame_Type = FRAME_RESPONSE_VALVE_ACK;
         response.frame_Length = 5;
-        valveControl_open();
+
         break;
 
     case FRAME_REQUEST_CLOSE_VALVE:
 
         // Set busy pin & set frame body to the current state of the valve:
+        valveControl_close();
         valve_state = valveControl_getValveState();
         Communications_setBusy();
         response.frame_Body = &valve_state;
         response.frame_Type = FRAME_RESPONSE_VALVE_ACK;
         response.frame_Length = 5;
-        valveControl_close();
+
         break;
     case FRAME_REQUEST_CONFIGURE:
 

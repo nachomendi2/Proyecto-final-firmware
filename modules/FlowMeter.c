@@ -298,11 +298,6 @@ inline float flowMeter_getTotalizer(){
     return flow_meter.totalizer;
 }
 
-inline float flowMeter_getTotalizer_test(){
-    return _IQ16toF(flow_meter.totalizer);
-    //return flow_meter.totalizer;
-}
-
 inline float flowMeter_getAverageMassFlowRate(){
     //_iq16 iq_count = _IQ16(flow_meter.measurement_Count);
     //_iq16 avr_fixed = _IQ16mpy(flow_meter.totalizer,iq_count);

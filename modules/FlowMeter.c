@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <hal_timer_a.h>
 #include "PressureSensor.h"
+#include <math.h>
 
 /* ----- GLOBAL VARIABLES ----- */
 
@@ -33,6 +34,7 @@ uint16_t dcOffsetEstcount;
 #endif
 #define FIXED_POINT_BITS    16
 #define SCALING_FACTOR      (1 << FIXED_POINT_BITS)
+#define MINIMUM_FLUX        20
 
 /* Based on flowcharts from USSlib user guide ("Code examples" section, figures 6-7)
  * Library initialization is done in three steps:
@@ -283,14 +285,15 @@ void flowMeter_update(){
     //convert to mass flow rate:
     _iq16 mass_flow_rate = flowMeter_calculateMassFlowRate(flow_rate);
     flow_meter.last_Mass_Flow_Rate = mass_flow_rate;
-    float float_mass_flow_rate_per_hour = _IQ16toF(mass_flow_rate);// / SCALING_FACTOR;   //TEMPORAL
-    float float_mass_flow_rate = float_mass_flow_rate_per_hour / 3600; //TEMPORAL
-
-    //add flow measurement to totalizer
-    flow_meter.measurement_Count++;
+    float float_mass_flow_rate_per_hour = _IQ16toF(mass_flow_rate);
+    if (fabs(float_mass_flow_rate_per_hour) > MINIMUM_FLUX){
+        float float_mass_flow_rate = float_mass_flow_rate_per_hour / 3600; // TEMPORAL
+    //add flow measurement to totalizer;
+        flow_meter.measurement_Count++;
     //flow_meter.totalizer += mass_flow_rate;
-    flow_meter.totalizer += float_mass_flow_rate;
+        flow_meter.totalizer += float_mass_flow_rate;
     //flow_meter.totalizer += _IQ16div(mass_flow_rate,3600);
+    }
 }
 
 inline float flowMeter_getTotalizer(){

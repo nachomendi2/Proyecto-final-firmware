@@ -228,6 +228,11 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
         uint8_t byte_array[4];
     }aux_float2bytes;
 
+    union {
+        uint32_t uint32_value;
+        uint8_t byte_array[4];
+    }aux_uint2bytes;
+
     switch(request.frame_Type){
     case FRAME_REQUEST_STATUS:
 
@@ -253,9 +258,12 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
         for (uint8_t i=17; i<21;i++){
             status_body[i] = 0xAAAAAAAA;
         }
-        aux_float2bytes.float_value = flowMeter_getTotalizer();
+        //aux_float2bytes.float_value = flowMeter_getTotalizer();
+        aux_uint2bytes.uint32_value = (int)flowMeter_getTotalizer();
+        //int flujo_test = (int)flowMeter_getTotalizer();
         for (uint8_t i=21; i<25;i++){
-            status_body[i] = aux_float2bytes.byte_array[24-i];
+            //status_body[i] = aux_float2bytes.byte_array[24-i];
+            status_body[i] = aux_uint2bytes.byte_array[24-i];
         }
         aux_float2bytes.float_value = flowMeter_getAverageMassFlowRate();
         for (uint8_t i=25; i<29;i++){

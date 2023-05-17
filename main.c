@@ -34,13 +34,15 @@ int main(void)
 	Communications_setup();
 	//PressureSensor_setup();
 	flowMeter_setup();
+
+	//flowMeter_setMeasurementTimeInterval(5);
+
 	valveControl_setup();
 
 	// --------- main program loop ----------
 	while(1){
 	    Communications_update();
 	    if(!UT_timer_delay(&wakeup_timer)){
-
 	        // enter LPM3:
 	        if (!Communications_isActive()){
 	            __low_power_mode_3();

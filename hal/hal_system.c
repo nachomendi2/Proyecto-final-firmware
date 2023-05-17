@@ -460,7 +460,7 @@ static void hal_system_GPIOInit(void)
         GPIO_setOutputLowOnPin(GPIO_PORT_P4,
                                GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
         GPIO_setOutputLowOnPin(GPIO_PORT_P5,
-                               GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+                               GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
         GPIO_setOutputLowOnPin(GPIO_PORT_P6,
                                GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
         GPIO_setOutputLowOnPin(GPIO_PORT_P7,
@@ -477,7 +477,7 @@ static void hal_system_GPIOInit(void)
         GPIO_setAsOutputPin(GPIO_PORT_P4,
                             GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
         GPIO_setAsOutputPin(GPIO_PORT_P5,
-                            GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+                            GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
         GPIO_setAsOutputPin(GPIO_PORT_P6,
                             GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
         GPIO_setAsOutputPin(GPIO_PORT_P7,
@@ -488,6 +488,9 @@ static void hal_system_GPIOInit(void)
         // Buttons as Input with internal pull-up
         GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_PJ,
                                              GPIO_PIN0|GPIO_PIN1|GPIO_PIN2);
+
+        //GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P5,
+        //                                             GPIO_PIN4);
 
         /* P1.4: IRQ (OPEN DRAIN)                   */
         GPIO_setAsInputPin(GPIO_PORT_P1, GPIO_PIN4);

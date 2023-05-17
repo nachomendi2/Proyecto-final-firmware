@@ -341,7 +341,8 @@ extern "C"
  *
  ******************************************************************************/
 #define USS_ACOUSTIC_LENGTH                                             70
-#define USS_VOLUME_SCALE_FACTOR                                         403
+//#define USS_VOLUME_SCALE_FACTOR                                         567.8673f
+#define USS_VOLUME_SCALE_FACTOR                                         1.0f
 // The following #define must be set to 1.0f or larger
 #define USS_VFR_LARGE_PIPE_ADDL_SF                                      1.000000f
 // The following #define must be :

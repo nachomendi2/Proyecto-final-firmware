@@ -170,11 +170,11 @@ void PressureSensor_update(){
     // TODO: Process temp & pressure bytes & store them on `pressure_sensor` struct with according units!
     uint32_t Pressure;
     uint32_t Temperature;
-    uint32_t K = 64;
+    uint32_t K = 8192;
     uint32_t pressure_adc;
 
+
     float press;
-    _iq16 temp;
     uint8_t NegativePressure = 0;
     uint8_t NegativeTemperature = 0;
     NegativePressure = (0b100000000|pressure_byte1); //Check if negative pressure
@@ -198,6 +198,12 @@ void PressureSensor_update(){
 
     pressure_adc = pressure_byte1 * 65536 + pressure_byte2 * 256 + pressure_byte3;
 
+    if (pressure_adc > 8388608) {
+        press = (pressure_adc - 16777216) / K;
+    } else {
+        press = pressure_adc / K;
+    }
+/*
     if (NegativePressure) {
         Pressure = _IQdiv4(_IQdiv32(_IQdiv32((Pressure-2^24)/K)));
         //press = (pressure_adc - 2^24) / K;
@@ -206,9 +212,9 @@ void PressureSensor_update(){
         Pressure = _IQdiv4(_IQdiv32(_IQdiv32(Pressure/K)));
         //press = pressure_adc / K;
     }
-
-    pressure_sensor.pressure = Pressure; //In Pa -- 1 Pa = 0.01 mbar
-    //pressure_sensor.pressure = press;
+*/
+    //pressure_sensor.pressure = Pressure; //In Pa -- 1 Pa = 0.01 mbar
+    pressure_sensor.pressure = press;
     __no_operation();
 }
 
@@ -225,5 +231,6 @@ inline uint32_t PressureSensor_getTemperature(){
 }
 
 inline uint32_t PressureSensor_getPressure(){
-    return _IQ16int (pressure_sensor.pressure);
+    //return _IQ16int (pressure_sensor.pressure);
+    return pressure_sensor.pressure;
 }

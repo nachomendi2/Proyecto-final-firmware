@@ -51,6 +51,9 @@ void Communications_setup(void){
         );
 
     //2. Configure GPIO for slave select: EVM= P2.3, PCB= P5.4
+    //GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P5,
+    //                                     GPIO_PIN4
+    //                                     );
     GPIO_setAsInputPin(
         GPIO_PORT_P5,
         GPIO_PIN4
@@ -154,7 +157,7 @@ void __attribute__ ((interrupt(PORT5_VECTOR))) Port5_ISR (void)
                break;
            case GPIO_INPUT_PIN_HIGH:
 
-               //SPI_slave.communication_Status = COMMUNICATION_STATUS_INACTIVE;
+               SPI_slave.communication_Status = COMMUNICATION_STATUS_INACTIVE;
                EUSCI_A_SPI_disableInterrupt(
                        EUSCI_A2_BASE,
                        EUSCI_A_SPI_RECEIVE_INTERRUPT

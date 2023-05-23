@@ -9,6 +9,8 @@
 #include "ussSwLib.h"
 #include <msp430.h>
 #include <USS_userConfig.h>
+#include "gpio.h"
+
 
 #define ACLK_FREQUENCY 32768 //clock frequency, used to calibrate delay.
 
@@ -25,5 +27,3 @@ bool UT_timer_delay(ut_tmrDelay_t *timer_delay){
     }
 
 }
-
-

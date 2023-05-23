@@ -287,8 +287,8 @@ void flowMeter_update(){
         //convert to mass flow rate:
     _iq16 mass_flow_rate = flowMeter_calculateMassFlowRate(flow_rate);
     flow_meter.last_Mass_Flow_Rate = mass_flow_rate;
-    float float_mass_flow_rate_per_hour = DENSITY * _IQ16toF(mass_flow_rate);
-    //float float_mass_flow_rate_per_hour = (46910/147) * _IQ16toF(mass_flow_rate) + 3376957/4900;
+    //float float_mass_flow_rate_per_hour = DENSITY * _IQ16toF(mass_flow_rate); 1.71 x + 80.07
+    float float_mass_flow_rate_per_hour = (1.71 * _IQ16toF(mass_flow_rate) + 80.07) * _IQ16toF(mass_flow_rate);
     if (float_mass_flow_rate_per_hour > MINIMUM_FLUX){
         float float_mass_flow_rate = float_mass_flow_rate_per_hour / 3600; // TEMPORAL
             //add flow measurement to totalizer;

@@ -47,7 +47,7 @@ int main(void)
 	Communications_setup();
 	//PressureSensor_setup();
 	flowMeter_setup();
-	blink_led_setup();
+	//blink_led_setup();
 
 	//flowMeter_setMeasurementTimeInterval(5);
 
@@ -65,7 +65,7 @@ int main(void)
 
 	    }else{
 	        valveControl_update();
-	        blink_led();
+	        //blink_led();
 	        //PressureSensor_update();
 	        flowMeter_update();
 	        Memory_backupData();

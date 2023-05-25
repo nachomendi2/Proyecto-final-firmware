@@ -48,9 +48,6 @@ int main(void)
 	//PressureSensor_setup();
 	flowMeter_setup();
 	//blink_led_setup();
-
-	//flowMeter_setMeasurementTimeInterval(5);
-
 	valveControl_setup();
 
 	// --------- main program loop ----------

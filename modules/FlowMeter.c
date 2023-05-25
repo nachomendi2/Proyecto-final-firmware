@@ -127,7 +127,7 @@ USS_message_code flowMeter_setup(){
     return exit_status;
 }
 
-_iq16 flowMeter_measureVolumeFlowRate(){
+_iq16 flowMeter_measureToF(){
     USS_Algorithms_Results_fixed_point results; //results in fixed point format
     USS_message_code exit_status = USS_message_code_no_error;
 
@@ -254,7 +254,13 @@ inline _iq16 flowMeter_getDensity(){
     return LPG_REFERENCE_DENSITY;
 }
 
-_iq16 flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
+_iq16 flowMeter_calculateVolumeFlowRate(_iq16 ToF){
+    _iq16 VolumeFlowRate = _IQmpy16(VSF, Tof);
+    return VolumeFlowRate;
+
+}
+
+float flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
     // calculate mass flow rate, in order to save memory calculations will be done reusing 2 axiliary variables:
 
     // get temperature & pressure
@@ -270,9 +276,8 @@ _iq16 flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
 
     aux1 = _IQ16mpy(aux1,aux2);
     aux1 = _IQ16mpy(aux1, vol_flow_rate);*/
-
-    //return (1.7175 * _IQ16toF(vol_flow_rate) + 81.4780) * _IQ16toF(vol_flow_rate);
-    return vol_flow_rate;
+    float vol_flow_rate_float = _IQ16toF(vol_flow_rate)
+    return (1.7175 * vol_flow_rate_float + 81.4780) * vol_flow_rate_float;
 }
 
 void flowMeter_update(){
@@ -281,28 +286,25 @@ void flowMeter_update(){
     // Measures mass flow rate, updates totalizer & handles overflows (WIP)
 
     // first, get the volume flow rate:
-    _iq16 flow_rate = flowMeter_measureVolumeFlowRate();
+    _iq16 ToF = flowMeter_measureToF();
+
+    _iq16 flow_rate = flowMeter_calculateVolumeFlowRate(ToF);
     //if (flow_rate < MAX_SUPPORTED_FLOW){ //Check that the flow measured has sense
     flow_meter.last_Volume_Flow_Rate = flow_rate;
         //convert to mass flow rate:
-    _iq16 mass_flow_rate = flowMeter_calculateMassFlowRate(flow_rate);
+    float mass_flow_rate = flowMeter_calculateMassFlowRate(ToF);
     flow_meter.last_Mass_Flow_Rate = mass_flow_rate;
-    //float float_mass_flow_rate_per_hour = DENSITY * _IQ16toF(mass_flow_rate); 1.71 x + 80.07
-    float float_mass_flow_rate_per_hour = (1.7175 * _IQ16toF(mass_flow_rate) + 81.4780) * _IQ16toF(mass_flow_rate);
-    if (float_mass_flow_rate_per_hour > MINIMUM_FLUX){
-        float float_mass_flow_rate = float_mass_flow_rate_per_hour / 3600; // TEMPORAL
+    //float float_mass_flow_rate_per_hour = (1.7175 * _IQ16toF(mass_flow_rate) + 81.4780) * _IQ16toF(mass_flow_rate);
+    if (mass_flow_rate > MINIMUM_FLUX){
+        float float_mass_flow_rate_per_second = mass_flow_rate / 3600; // TEMPORAL
             //add flow measurement to totalizer;
         flow_meter.measurement_Count++;
-            //flow_meter.totalizer += mass_flow_rate;
-            //flow_meter.totalizer += float_mass_flow_rate;
-        flow_meter.totalizer += FLOW_METER_SLEEP_SECS * float_mass_flow_rate;
-            //flow_meter.totalizer += _IQ16div(mass_flow_rate,3600);
+        flow_meter.totalizer += FLOW_METER_SLEEP_SECS * float_mass_flow_rate_per_second;
         //}
     }
 }
 
 inline float flowMeter_getTotalizer(){
-    //return _IQ16toF(flow_meter.totalizer);
     return flow_meter.totalizer;
 }
 

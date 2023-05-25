@@ -51,13 +51,13 @@ void Communications_setup(void){
         );
 
     //2. Configure GPIO for slave select: EVM= P2.3, PCB= P5.4
-    //GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P5,
-    //                                     GPIO_PIN4
-    //                                     );
-    GPIO_setAsInputPin(
-        GPIO_PORT_P5,
-        GPIO_PIN4
-        );
+    GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P5,
+                                         GPIO_PIN4
+                                         );
+    //GPIO_setAsInputPin(
+    //    GPIO_PORT_P5,
+    //    GPIO_PIN4
+    //    );
 
     GPIO_enableInterrupt(
         GPIO_PORT_P5,

@@ -281,7 +281,8 @@ void flowMeter_update(){
     // Measures mass flow rate, updates totalizer & handles overflows (WIP)
 
     // first, get the volume flow rate:
-    _iq16 flow_rate = flowMeter_measureVolumeFlowRate();
+    //_iq16 flow_rate = flowMeter_measureVolumeFlowRate();
+    _iq16 flow_rate = 400000;
     //if (flow_rate < MAX_SUPPORTED_FLOW){ //Check that the flow measured has sense
     flow_meter.last_Volume_Flow_Rate = flow_rate;
         //convert to mass flow rate:

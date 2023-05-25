@@ -255,7 +255,7 @@ inline _iq16 flowMeter_getDensity(){
 }
 
 _iq16 flowMeter_calculateVolumeFlowRate(_iq16 ToF){
-    _iq16 VolumeFlowRate = _IQmpy16(VSF, Tof);
+    _iq16 VolumeFlowRate = _IQ16mpy(VSF, ToF);
     return VolumeFlowRate;
 
 }
@@ -276,7 +276,7 @@ float flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
 
     aux1 = _IQ16mpy(aux1,aux2);
     aux1 = _IQ16mpy(aux1, vol_flow_rate);*/
-    float vol_flow_rate_float = _IQ16toF(vol_flow_rate)
+    float vol_flow_rate_float = _IQ16toF(vol_flow_rate);
     return (1.7175 * vol_flow_rate_float + 81.4780) * vol_flow_rate_float;
 }
 
@@ -309,12 +309,8 @@ inline float flowMeter_getTotalizer(){
 }
 
 inline float flowMeter_getAverageMassFlowRate(){
-    //_iq16 iq_count = _IQ16(flow_meter.measurement_Count);
-    //_iq16 avr_fixed = _IQ16mpy(flow_meter.totalizer,iq_count);
-    //_iq16 avr_fixed = _IQ16div(flow_meter.totalizer,iq_count);
     float avr_fixed = (3600 * flow_meter.totalizer) / flow_meter.measurement_Count;
     return avr_fixed;
-    //return _IQ16toF(avr_fixed);
 }
 
 inline float flowMeter_getVolumeFlowRate(){

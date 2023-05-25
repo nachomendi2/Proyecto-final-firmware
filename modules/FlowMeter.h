@@ -45,7 +45,7 @@ _iq16 flowMeter_calculateVolumeFlowRate(_iq16 ToF);
 inline _iq16 flowMeter_getDensity();
 
 
-_iq16 flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate);
+float flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate);
 
 void flowMeter_update();
 

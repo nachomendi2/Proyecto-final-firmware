@@ -32,11 +32,11 @@ uint16_t agcCalibcount;
 #ifdef USS_APP_DC_OFFSET_CANCELLATION_ENABLE
 uint16_t dcOffsetEstcount;
 #endif
-#define FIXED_POINT_BITS    16
-#define SCALING_FACTOR      (1 << FIXED_POINT_BITS)
-#define MINIMUM_FLUX        50
-#define MAX_SUPPORTED_FLOW  2.5f
-#define FLOW_METER_SLEEP_SECS 5
+//#define FIXED_POINT_BITS    16
+//#define SCALING_FACTOR      (1 << FIXED_POINT_BITS)
+//#define MINIMUM_FLUX        50
+//#define MAX_SUPPORTED_FLOW  2.5f
+//#define FLOW_METER_SLEEP_SECS 5
 
 /* Based on flowcharts from USSlib user guide ("Code examples" section, figures 6-7)
  * Library initialization is done in three steps:
@@ -127,7 +127,7 @@ USS_message_code flowMeter_setup(){
     return exit_status;
 }
 
-_iq16 flowMeter_measureToF(){
+_iq16 flowMeter_measureDToF(){
     USS_Algorithms_Results_fixed_point results; //results in fixed point format
     USS_message_code exit_status = USS_message_code_no_error;
 
@@ -247,60 +247,40 @@ _iq16 flowMeter_measureToF(){
          *  also get absolute value (we don't care about the direction of the flow, only the modulus
          */
     _iq16 vol_flow_rate = results.iq16VolumeFlowRate;
-    return vol_flow_rate;//_IQ16abs( _IQdiv16( _IQdiv64( results.iq16VolumeFlowRate ) ) );
+    return vol_flow_rate;
 }
 
-inline _iq16 flowMeter_getDensity(){
-    return LPG_REFERENCE_DENSITY;
-}
-
-_iq16 flowMeter_calculateVolumeFlowRate(_iq16 ToF){
-    _iq16 VolumeFlowRate = _IQ16mpy(VSF, ToF);
+_iq16 flowMeter_calculateVolumeFlowRate(_iq16 DToF){
+    // Calculate volume flow rate multiplying the differential time of flight by the volume scale factor:
+    _iq16 VolumeFlowRate = _IQ16mpy(VSF, DToF);
     return VolumeFlowRate;
 
 }
 
 float flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
-    // calculate mass flow rate, in order to save memory calculations will be done reusing 2 axiliary variables:
-
-    // get temperature & pressure
-    /*_iq16 aux1 = PressureSensor_getTemperatureFixedPoint();
-    _iq16 aux2 = PressureSensor_getPressureFixedPoint();
-
-    aux1 = _IQ16div(
-            MASS_FLOW_RATE_CALCULATION_CONST_1,
-            MASS_FLOW_RATE_CALCULATION_CONST_2 + aux1);
-
-    aux2 =  _IQ16div(ATMOSPHERIC_PRESSURE,
-            MASS_FLOW_RATE_CALCULATION_CONST_3);
-
-    aux1 = _IQ16mpy(aux1,aux2);
-    aux1 = _IQ16mpy(aux1, vol_flow_rate);*/
+    // calculate mass flow rate using the calibration curve:
     float vol_flow_rate_float = _IQ16toF(vol_flow_rate);
     return (1.7175 * vol_flow_rate_float + 81.4780) * vol_flow_rate_float;
 }
 
 void flowMeter_update(){
-
     // main loop of the flow meter module
     // Measures mass flow rate, updates totalizer & handles overflows (WIP)
 
-    // first, get the volume flow rate:
-    _iq16 ToF = flowMeter_measureToF();
-
-    _iq16 flow_rate = flowMeter_calculateVolumeFlowRate(ToF);
-    //if (flow_rate < MAX_SUPPORTED_FLOW){ //Check that the flow measured has sense
+    // first, get the differential time of flight:
+    _iq16 DToF = flowMeter_measureDToF();
+    // calculate volume flow rate:
+    _iq16 flow_rate = flowMeter_calculateVolumeFlowRate(DToF);
     flow_meter.last_Volume_Flow_Rate = flow_rate;
-        //convert to mass flow rate:
-    float mass_flow_rate = flowMeter_calculateMassFlowRate(ToF);
+    //calculate mass flow rate:
+    float mass_flow_rate = flowMeter_calculateMassFlowRate(DToF);
     flow_meter.last_Mass_Flow_Rate = mass_flow_rate;
-    //float float_mass_flow_rate_per_hour = (1.7175 * _IQ16toF(mass_flow_rate) + 81.4780) * _IQ16toF(mass_flow_rate);
     if (mass_flow_rate > MINIMUM_FLUX){
-        float float_mass_flow_rate_per_second = mass_flow_rate / 3600; // TEMPORAL
-            //add flow measurement to totalizer;
+        //hour to seconds conversion
+        float float_mass_flow_rate_per_second = mass_flow_rate / 3600;
         flow_meter.measurement_Count++;
-        flow_meter.totalizer += FLOW_METER_SLEEP_SECS * float_mass_flow_rate_per_second;
-        //}
+        //add flow measurement to totalizer;
+        flow_meter.totalizer += flow_meter.measure_Time_Interval_Seconds * float_mass_flow_rate_per_second;
     }
 }
 

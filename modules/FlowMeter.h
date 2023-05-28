@@ -23,6 +23,10 @@
 #define MASS_FLOW_RATE_CALCULATION_CONST_2 17901158// 273.15 expressed in fixed point
 #define MASS_FLOW_RATE_CALCULATION_CONST_3 66404352// 1013.25 expressed in fixed point
 #define VSF 14841283 // 226.46 expressed in fixed point
+#define FIXED_POINT_BITS    16
+#define SCALING_FACTOR      (1 << FIXED_POINT_BITS)
+#define MINIMUM_FLUX        50
+#define MAX_SUPPORTED_FLOW  2.5f
 
 
 typedef struct
@@ -38,12 +42,11 @@ typedef struct
 
 USS_message_code flowMeter_setup();
 
-_iq16 flowMeter_measureToF();
+_iq16 flowMeter_measureDToF();
 
 _iq16 flowMeter_calculateVolumeFlowRate(_iq16 ToF);
 
 inline _iq16 flowMeter_getDensity();
-
 
 float flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate);
 

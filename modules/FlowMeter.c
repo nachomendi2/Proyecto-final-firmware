@@ -32,11 +32,6 @@ uint16_t agcCalibcount;
 #ifdef USS_APP_DC_OFFSET_CANCELLATION_ENABLE
 uint16_t dcOffsetEstcount;
 #endif
-//#define FIXED_POINT_BITS    16
-//#define SCALING_FACTOR      (1 << FIXED_POINT_BITS)
-//#define MINIMUM_FLUX        50
-//#define MAX_SUPPORTED_FLOW  2.5f
-//#define FLOW_METER_SLEEP_SECS 5
 
 /* Based on flowcharts from USSlib user guide ("Code examples" section, figures 6-7)
  * Library initialization is done in three steps:
@@ -246,25 +241,24 @@ _iq16 flowMeter_measureDToF(){
          *  this makes calculations way faster
          *  also get absolute value (we don't care about the direction of the flow, only the modulus
          */
-    _iq16 vol_flow_rate = results.iq16VolumeFlowRate;
-    return vol_flow_rate;
+    _iq16 DToF = results.iq16VolumeFlowRate;
+    return DToF;
 }
 
 _iq16 flowMeter_calculateVolumeFlowRate(_iq16 DToF){
     // Calculate volume flow rate multiplying the differential time of flight by the volume scale factor:
     _iq16 VolumeFlowRate = _IQ16mpy(VSF, DToF);
     return VolumeFlowRate;
-
 }
 
 float flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
-    // calculate mass flow rate using the calibration curve:
+    // Calculate mass flow rate using the calibration curve:
     float vol_flow_rate_float = _IQ16toF(vol_flow_rate);
     return (1.7175 * vol_flow_rate_float + 81.4780) * vol_flow_rate_float;
 }
 
 void flowMeter_update(){
-    // main loop of the flow meter module
+    // Main loop of the flow meter module
     // Measures mass flow rate, updates totalizer & handles overflows (WIP)
 
     // first, get the differential time of flight:
@@ -305,8 +299,3 @@ void flowMeter_setMeasurementTimeInterval(uint16_t interval){
     hal_timer_a_setWakeUptimerPeriod(interval*512);
     flow_meter.measure_Time_Interval_Seconds = interval;
 }
-
-
-
-
-

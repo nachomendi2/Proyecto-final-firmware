@@ -11,24 +11,7 @@
 #include <PressureSensor.h>
 #include "gpio.h"
 
-
-
-//#define __AFE_EXT_3v3__ // remove this to use external AFE
-/*
- * main.c
- */
 extern ut_tmrDelay_t wakeup_timer;
-
-int blink_led_setup(void) {
-    GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
-    GPIO_setOutputLowOnPin(GPIO_PORT_P1,GPIO_PIN0);
-    return 0;
-}
-
-int blink_led(void) {
-    GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
-    return 0;
-}
 
 int main(void)
 {
@@ -45,9 +28,7 @@ int main(void)
 	    }
 	__enable_interrupt();
 	Communications_setup();
-	//PressureSensor_setup();
 	flowMeter_setup();
-	//blink_led_setup();
 	valveControl_setup();
 
 	// --------- main program loop ----------
@@ -62,8 +43,6 @@ int main(void)
 
 	    }else{
 	        valveControl_update();
-	        //blink_led();
-	        //PressureSensor_update();
 	        flowMeter_update();
 	        Memory_backupData();
 	    }

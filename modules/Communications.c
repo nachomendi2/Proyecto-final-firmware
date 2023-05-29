@@ -54,10 +54,6 @@ void Communications_setup(void){
     GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P5,
                                          GPIO_PIN4
                                          );
-    //GPIO_setAsInputPin(
-    //    GPIO_PORT_P5,
-    //    GPIO_PIN4
-    //    );
 
     GPIO_enableInterrupt(
         GPIO_PORT_P5,
@@ -140,8 +136,8 @@ void __attribute__ ((interrupt(PORT5_VECTOR))) Port5_ISR (void)
 #error Compiler not supported!
 #endif
 {
-    GPIO_clearInterrupt(GPIO_PORT_P5,GPIO_PIN4); //PCB
-       switch(GPIO_getInputPinValue(GPIO_PORT_P5, GPIO_PIN4)){ //PCB
+    GPIO_clearInterrupt(GPIO_PORT_P5,GPIO_PIN4);
+       switch(GPIO_getInputPinValue(GPIO_PORT_P5, GPIO_PIN4)){
            case GPIO_INPUT_PIN_LOW:
                SPI_slave.communication_Status = COMMUNICATION_STATUS_LISTENING;
                EUSCI_A_SPI_clearInterrupt(EUSCI_A2_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
@@ -149,7 +145,7 @@ void __attribute__ ((interrupt(PORT5_VECTOR))) Port5_ISR (void)
                                           EUSCI_A2_BASE,
                                           EUSCI_A_SPI_RECEIVE_INTERRUPT
                                           );
-               GPIO_selectInterruptEdge( //PCB
+               GPIO_selectInterruptEdge(
                        GPIO_PORT_P5,
                        GPIO_PIN4,
                        GPIO_LOW_TO_HIGH_TRANSITION
@@ -162,7 +158,7 @@ void __attribute__ ((interrupt(PORT5_VECTOR))) Port5_ISR (void)
                        EUSCI_A2_BASE,
                        EUSCI_A_SPI_RECEIVE_INTERRUPT
                        );
-               GPIO_selectInterruptEdge( //PCB
+               GPIO_selectInterruptEdge(
                        GPIO_PORT_P5,
                        GPIO_PIN4,
                        GPIO_HIGH_TO_LOW_TRANSITION
@@ -261,11 +257,8 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
         for (uint8_t i=17; i<21;i++){
             status_body[i] = 0xAAAAAAAA;
         }
-        //aux_float2bytes.float_value = flowMeter_getTotalizer();
         aux_uint2bytes.uint32_value = (int)flowMeter_getTotalizer();
-        //int flujo_test = (int)flowMeter_getTotalizer();
         for (uint8_t i=21; i<25;i++){
-            //status_body[i] = aux_float2bytes.byte_array[24-i];
             status_body[i] = aux_uint2bytes.byte_array[24-i];
         }
         aux_float2bytes.float_value = flowMeter_getAverageMassFlowRate();

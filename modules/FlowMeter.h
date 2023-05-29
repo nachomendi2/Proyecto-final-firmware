@@ -26,13 +26,12 @@
 #define FIXED_POINT_BITS    16
 #define SCALING_FACTOR      (1 << FIXED_POINT_BITS)
 #define MINIMUM_FLUX        50
-#define MAX_SUPPORTED_FLOW  2.5f
+#define MAX_SUPPORTED_FLOW  15f
 
 
 typedef struct
 {
     float totalizer;
-    //_iq16 totalizer;
     uint16_t measurement_Count;
     _iq16 last_Volume_Flow_Rate;
     _iq16 last_Mass_Flow_Rate;
@@ -44,11 +43,11 @@ USS_message_code flowMeter_setup();
 
 _iq16 flowMeter_measureDToF();
 
-_iq16 flowMeter_calculateVolumeFlowRate(_iq16 ToF);
+_iq16 flowMeter_calculateVolumeFlowRate(_iq16 DToF);
 
 inline _iq16 flowMeter_getDensity();
 
-float flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate);
+float flowMeter_calculateMassFlowRate(_iq16 DToF);
 
 void flowMeter_update();
 

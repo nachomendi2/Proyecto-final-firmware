@@ -126,13 +126,13 @@ bool PressureSensor_writeRegister(uint8_t sensor_register, uint8_t write_data)
 
 void PressureSensor_update(){
 
-    /* Turn ON pressure sensor:
+    // Turn ON pressure sensor:
     GPIO_setOutputHighOnPin(
         GPIO_PORT_P1,
         GPIO_PIN0
         );
     __delay_cycles(5000);
-    */
+
     // 1. Send 'start measurement' order to pressure sensor:
     PressureSensor_writeRegister(
             PRESSURE_SENSOR_I2C_CMD_REGISTER,
@@ -162,11 +162,11 @@ void PressureSensor_update(){
     //Communications_update();
 
     // Turn OFF pressure sensor:
-    /*GPIO_setOutputLowOnPin(
+    GPIO_setOutputLowOnPin(
         GPIO_PORT_P1,
         GPIO_PIN0
         );
-    */
+
     // TODO: Process temp & pressure bytes & store them on `pressure_sensor` struct with according units!
     uint32_t Pressure;
     uint32_t Temperature;
@@ -196,25 +196,13 @@ void PressureSensor_update(){
     Pressure |= pressure_byte2 << 8;
     Pressure |= pressure_byte3;
 
-    pressure_adc = pressure_byte1 * 65536 + pressure_byte2 * 256 + pressure_byte3;
-
-    if (pressure_adc > 8388608) {
-        press = (pressure_adc - 16777216) / K;
+    if (Pressure > 8388608) {
+        Pressure = (Pressure - 16777216) / K;
     } else {
-        press = pressure_adc / K;
+        Pressure = Pressure / K;
     }
-/*
-    if (NegativePressure) {
-        Pressure = _IQdiv4(_IQdiv32(_IQdiv32((Pressure-2^24)/K)));
-        //press = (pressure_adc - 2^24) / K;
 
-    } else {
-        Pressure = _IQdiv4(_IQdiv32(_IQdiv32(Pressure/K)));
-        //press = pressure_adc / K;
-    }
-*/
-    //pressure_sensor.pressure = Pressure; //In Pa -- 1 Pa = 0.01 mbar
-    pressure_sensor.pressure = press;
+    pressure_sensor.pressure = Pressure; //In Pa -- 1 Pa = 0.01 mbar
     __no_operation();
 }
 
@@ -231,6 +219,5 @@ inline uint32_t PressureSensor_getTemperature(){
 }
 
 inline uint32_t PressureSensor_getPressure(){
-    //return _IQ16int (pressure_sensor.pressure);
     return pressure_sensor.pressure;
 }

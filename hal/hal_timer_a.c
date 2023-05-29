@@ -36,7 +36,7 @@ void hal_timer_a_InitValveDelay(){
 
     // Configure TA4 for timing valve command pulse duration
     Timer_A_initUpModeParam timer_valve_config;
-    timer_valve_config.timerPeriod = 43000;//25800;
+    timer_valve_config.timerPeriod = 43000;
     timer_valve_config.timerClear = TIMER_A_DO_CLEAR;
     timer_valve_config.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
     timer_valve_config.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_4;

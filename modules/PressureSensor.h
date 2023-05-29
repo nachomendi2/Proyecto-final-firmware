@@ -30,7 +30,6 @@ typedef enum{
 
 typedef struct{
     _iq16 temperature;
-    //_iq16 pressure;
     float pressure;
     bool byte_Tx_ready;
     bool byte_Rx_received;

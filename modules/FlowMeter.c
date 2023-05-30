@@ -247,14 +247,13 @@ _iq16 flowMeter_measureDToF(){
 
 _iq16 flowMeter_calculateVolumeFlowRate(_iq16 DToF){
     // Calculate volume flow rate multiplying the differential time of flight by the volume scale factor:
-    _iq16 VolumeFlowRate = _IQ16mpy(VSF, DToF);
+    _iq16 VolumeFlowRate = _IQ16mpy(DToF,VSF);
     return VolumeFlowRate;
 }
 
-float flowMeter_calculateMassFlowRate(_iq16 vol_flow_rate){
+float flowMeter_calculateMassFlowRate(_iq16 DToF){
     // Calculate mass flow rate using the calibration curve:
-    float vol_flow_rate_float = _IQ16toF(vol_flow_rate);
-    return (1.7175 * vol_flow_rate_float + 81.4780) * vol_flow_rate_float;
+    return (1.7175 * _IQ16toF(DToF) + 81.4780) * _IQ16toF(DToF);
 }
 
 void flowMeter_update(){
@@ -269,11 +268,15 @@ void flowMeter_update(){
     //calculate mass flow rate:
     float mass_flow_rate = flowMeter_calculateMassFlowRate(DToF);
     flow_meter.last_Mass_Flow_Rate = mass_flow_rate;
+
     if (mass_flow_rate > MINIMUM_FLUX){
         //hour to seconds conversion
         float float_mass_flow_rate_per_second = mass_flow_rate / 3600;
         flow_meter.measurement_Count++;
         //add flow measurement to totalizer;
+        if (flow_meter.measure_Time_Interval_Seconds == 0){
+            flow_meter.measure_Time_Interval_Seconds = 5; //Revisar esto
+        }
         flow_meter.totalizer += flow_meter.measure_Time_Interval_Seconds * float_mass_flow_rate_per_second;
     }
 }
@@ -283,8 +286,8 @@ inline float flowMeter_getTotalizer(){
 }
 
 inline float flowMeter_getAverageMassFlowRate(){
-    float avr_fixed = (3600 * flow_meter.totalizer) / flow_meter.measurement_Count;
-    return avr_fixed;
+    float AverageMassFlowRate = (3600 * flow_meter.totalizer) / flow_meter.measurement_Count;
+    return AverageMassFlowRate;
 }
 
 inline float flowMeter_getVolumeFlowRate(){
@@ -292,7 +295,7 @@ inline float flowMeter_getVolumeFlowRate(){
 }
 
 inline float flowMeter_getMassFlowRate(){
-    return _IQ16toF(flow_meter.last_Mass_Flow_Rate);
+    return flow_meter.last_Mass_Flow_Rate;
 }
 
 void flowMeter_setMeasurementTimeInterval(uint16_t interval){

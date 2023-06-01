@@ -277,7 +277,8 @@ void flowMeter_update(){
         if (flow_meter.measure_Time_Interval_Seconds == 0){
             flow_meter.measure_Time_Interval_Seconds = 5; //Revisar esto
         }
-        flow_meter.totalizer += flow_meter.measure_Time_Interval_Seconds * float_mass_flow_rate_per_second;
+//flow_meter.totalizer += flow_meter.measure_Time_Interval_Seconds * float_mass_flow_rate_per_second;
+        flow_meter.totalizer += MEASURE_WAKE_UP_TIME * float_mass_flow_rate_per_second;
     }
 }
 

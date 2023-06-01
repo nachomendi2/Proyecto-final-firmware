@@ -19,7 +19,7 @@ int hal_timer_a_InitWakeUpTimer(){
 
     // Configure TA3 for delay between measurements:
     Timer_A_initUpModeParam timer_delay_config;
-    timer_delay_config.timerPeriod = 5*512;
+    timer_delay_config.timerPeriod = 512;
     timer_delay_config.timerClear = TIMER_A_DO_CLEAR;
     timer_delay_config.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
     timer_delay_config.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_64;

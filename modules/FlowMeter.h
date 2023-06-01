@@ -27,6 +27,7 @@
 #define SCALING_FACTOR      (1 << FIXED_POINT_BITS)
 #define MINIMUM_FLUX        50
 #define MAX_SUPPORTED_FLOW  15f
+#define MEASURE_WAKE_UP_TIME 1
 
 
 typedef struct

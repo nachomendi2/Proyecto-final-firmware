@@ -261,23 +261,25 @@ void flowMeter_update(){
     // Measures mass flow rate, updates totalizer & handles overflows (WIP)
 
     // first, get the differential time of flight:
-    _iq16 DToF = flowMeter_measureDToF();
+    flow_meter.last_DToF = flowMeter_measureDToF();
+
+    //flow_meter.last_DToF = 524590; //8 en punto fijo
+
     // calculate volume flow rate:
-    _iq16 flow_rate = flowMeter_calculateVolumeFlowRate(DToF);
+    _iq16 flow_rate = flowMeter_calculateVolumeFlowRate(flow_meter.last_DToF);
     flow_meter.last_Volume_Flow_Rate = flow_rate;
-    //calculate mass flow rate:
-    float mass_flow_rate = flowMeter_calculateMassFlowRate(DToF);
+
+    // calculate mass flow rate:
+    float mass_flow_rate = flowMeter_calculateMassFlowRate(flow_meter.last_DToF);
     flow_meter.last_Mass_Flow_Rate = mass_flow_rate;
 
-    if (mass_flow_rate > MINIMUM_FLUX){
+    if ( (_IQ16toF(flow_meter.last_DToF) < 13) && (_IQ16toF(flow_meter.last_DToF) > 1.5) ){
+
         //hour to seconds conversion
         float float_mass_flow_rate_per_second = mass_flow_rate / 3600;
         flow_meter.measurement_Count++;
+
         //add flow measurement to totalizer;
-        if (flow_meter.measure_Time_Interval_Seconds == 0){
-            flow_meter.measure_Time_Interval_Seconds = 5; //Revisar esto
-        }
-//flow_meter.totalizer += flow_meter.measure_Time_Interval_Seconds * float_mass_flow_rate_per_second;
         flow_meter.totalizer += MEASURE_WAKE_UP_TIME * float_mass_flow_rate_per_second;
     }
 }
@@ -287,7 +289,7 @@ inline float flowMeter_getTotalizer(){
 }
 
 inline float flowMeter_getAverageMassFlowRate(){
-    float AverageMassFlowRate = (3600 * flow_meter.totalizer) / flow_meter.measurement_Count;
+    float AverageMassFlowRate = (3600 * flow_meter.totalizer) / (MEASURE_WAKE_UP_TIME * flow_meter.measurement_Count);
     return AverageMassFlowRate;
 }
 
@@ -303,3 +305,12 @@ void flowMeter_setMeasurementTimeInterval(uint16_t interval){
     hal_timer_a_setWakeUptimerPeriod(interval*512);
     flow_meter.measure_Time_Interval_Seconds = interval;
 }
+
+void flowMeter_reset(){
+    flow_meter.totalizer = 0;
+    flow_meter.measurement_Count = 0;
+    flow_meter.last_Mass_Flow_Rate = 0;
+    flow_meter.last_Volume_Flow_Rate = 0;
+    flow_meter.last_DToF = 0;
+}
+

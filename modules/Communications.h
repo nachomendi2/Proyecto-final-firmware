@@ -66,6 +66,7 @@ typedef enum
     FRAME_RESPONSE_AVERAGE_MASS_FLOW_RATE = 0x08,
     FRAME_RESPONSE_VALVE_ACK = 0xA5,
     FRAME_RESPONSE_CONFIGURE_ACK = 0X11,
+    FRAME_REQUEST_RESET = 0X1F,
 }SPI_Communications_Frame_Type;
 
 typedef struct

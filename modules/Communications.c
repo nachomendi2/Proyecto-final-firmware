@@ -326,6 +326,9 @@ void Communications_ProcessRequest(SPI_Communications_Frame request){
         flowMeter_setMeasurementTimeInterval(aux_bytes2uint16.int_value);
         response.frame_Body = aux_bytes2uint16.byte_array;
         response.frame_Length = 6;
+        break;
+    case FRAME_REQUEST_RESET:
+        flowMeter_reset();
     }
 
     // CRC is calculated inside Communications_send()

@@ -26,7 +26,8 @@
 #define FIXED_POINT_BITS    16
 #define SCALING_FACTOR      (1 << FIXED_POINT_BITS)
 #define MINIMUM_FLUX        50
-#define MAX_SUPPORTED_FLOW  15f
+#define MAX_SUPPORTED_DToF  13f
+#define MIN_SUPPORTED_DToF  1.5f
 #define MEASURE_WAKE_UP_TIME 1
 
 
@@ -37,6 +38,7 @@ typedef struct
     _iq16 last_Volume_Flow_Rate;
     _iq16 last_Mass_Flow_Rate;
     uint16_t measure_Time_Interval_Seconds;
+    _iq16 last_DToF;
 }flowMeter_Module;
 
 
@@ -59,5 +61,7 @@ inline float flowMeter_getVolumeFlowRate();
 inline float flowMeter_getTotalizer();
 
 inline float flowMeter_getMassFlowRate();
+
+void flowMeter_reset();
 
 #endif /* MODULES_FLOWMETER_H_ */
